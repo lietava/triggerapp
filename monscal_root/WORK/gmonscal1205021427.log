@@ -1,0 +1,545 @@
+readVALIDLTUS: File: /usr/local/trigger/v/vme/CFG/ctp/DB/VALID.LTUS opened.
+Machine: alidcscom707 7
+02.05.2012_14:22:33 ActiveRun: File: /usr/local/trigger/v/vme/CFG/ctp/monscal/inputs.mcfg opened.
+INT in the list of inputs.
+02.05.2012_14:22:33 ActiveRun: File: /usr/local/trigger/v/vme/CFG/ctp/DB/VALID.CTPINPUTS opened.
+0VBA L0 CTP: 1 V0
+0VBC L0 CTP: 2 V0
+TriggerInputwCount: factor set to 4 for input 0SMB
+0SMB L0 CTP: 3 SPD
+0TVX L0 CTP: 4 T0
+0MSL L0 CTP: 13 MUON_TRG
+Starting run 0
+Creating DisplaySCAL ver 1
+Starting DisplaySCAL for run: 0
+0VBA L0 CTP: 1 V0
+0VBC L0 CTP: 2 V0
+0SMB L0 CTP: 3 SPD
+0TVX L0 CTP: 4 T0
+0MSL L0 CTP: 13 MUON_TRG
+0VBA L0 CTP: 1 V0
+0VBC L0 CTP: 2 V0
+0SMB L0 CTP: 3 SPD
+0TVX L0 CTP: 4 T0
+0MSL L0 CTP: 13 MUON_TRG
+Opening MONSCAL/display.log
+ivln= 54 ivhn=54
+DisplayScal created for run 0
+Monscal created, version 1 Output option= 1
+scp: v/vme/WORK/RCFG/r179593.rcfg: No such file or directory
+ActiveRun::ParseConfigFile : cannot copy scp -p trigger@alidcscom188:v/vme/WORK/RCFG/r179593.rcfg RCFG/.
+Starting run 179593
+Creating DisplaySCAL ver 1
+Stopping DisplaySCAL for run: 0
+deleting inputs
+0 0x1f0f77f0
+1 0x1f0f7630
+2 0x1f0f4110
+3 0x1f0f41c0
+12 0x1f0f4270
+50 0x1f0f8810
+51 0x1f0f8760
+52 0x1f0f7900
+DisplaySCAL for run: 0 stopped.
+Stopping run 0
+02.05.2012_14:22:33 ActiveRun: File: /usr/local/trigger/v/vme/CFG/ctp/monscal/inputs.mcfg opened.
+INT in the list of inputs.
+02.05.2012_14:22:33 ActiveRun: File: /usr/local/trigger/v/vme/CFG/ctp/DB/VALID.CTPINPUTS opened.
+0VBA L0 CTP: 1 V0
+0VBC L0 CTP: 2 V0
+TriggerInputwCount: factor set to 4 for input 0SMB
+0SMB L0 CTP: 3 SPD
+0TVX L0 CTP: 4 T0
+0MSL L0 CTP: 13 MUON_TRG
+Starting run 0
+Creating DisplaySCAL ver 1
+Starting DisplaySCAL for run: 0
+0VBA L0 CTP: 1 V0
+0VBC L0 CTP: 2 V0
+0SMB L0 CTP: 3 SPD
+0TVX L0 CTP: 4 T0
+0MSL L0 CTP: 13 MUON_TRG
+0VBA L0 CTP: 1 V0
+0VBC L0 CTP: 2 V0
+0SMB L0 CTP: 3 SPD
+0TVX L0 CTP: 4 T0
+0MSL L0 CTP: 13 MUON_TRG
+ivln= 54 ivhn=54
+DisplayScal created for run 0
+02.05.2012_14:22:33 ActiveRun: File: RCFG/r179604.rcfg opened.
+TriggerInputwCount: factor set to 4 for input 0SMB
+TriggerInputwCount: factor set to 4 for input 0SH1
+TriggerInputwCount: factor set to 4 for input 0SH2
+TriggerInputwCount: factor set to 4 for input 0SM2
+TriggerInputwCount: factor set to 4 for input 0SCO
+INTERACTION found.
+TriggerClasswCount: Factor NOT set to 4 for L0B for class CMSL8-S-NOPF-ALLNOTRD
+TriggerClasswCount: Factor NOT set to 4 for L0B for class CMSL8-ACE-NOPF-ALLNOTRD
+TriggerClasswCount: Factor NOT set to 4 for L0B for class CMSL7-S-NOPF-MUON
+TriggerClasswCount: Factor NOT set to 4 for L0B for class CMSL7-ACE-NOPF-MUON
+TriggerClasswCount: Factor NOT set to 4 for L0B for class CMSH7-S-NOPF-MUON
+TriggerClasswCount: Factor NOT set to 4 for L0B for class CMSH7-ACE-NOPF-MUON
+Detector EMCal not found !!!
+Detector EMCal not found !!!
+Starting run 179604
+Creating DisplaySCAL ver 1
+Starting DisplaySCAL for run: 179604
+0VBA L0 CTP: 1 V0
+0VBC L0 CTP: 2 V0
+0SMB L0 CTP: 3 SPD
+0TVX L0 CTP: 4 T0
+0VGC L0 CTP: 5 V0
+0VGA L0 CTP: 6 V0
+0SH1 L0 CTP: 7 SPD
+0SH2 L0 CTP: 8 SPD
+0SM2 L0 CTP: 9 SPD
+0AMU L0 CTP: 10 ACORDE
+0OB0 L0 CTP: 11 TOF
+0OM2 L0 CTP: 12 TOF
+0MSL L0 CTP: 13 MUON_TRG
+0MSH L0 CTP: 14 MUON_TRG
+0MUL L0 CTP: 15 MUON_TRG
+0MLL L0 CTP: 16 MUON_TRG
+0EMC L0 CTP: 17 EMCal
+0PH0 L0 CTP: 18 PHOS
+0HWU L0 CTP: 19 TRD
+0LSR L0 CTP: 20 TPC
+0TSC L0 CTP: 21 T0
+0BPA L0 CTP: 22 DAQ_TEST
+0BPC L0 CTP: 23 DAQ_TEST
+0SCO L0 CTP: 24 SPD
+1EJE L1 CTP: 1 EMCal
+1EGA L1 CTP: 2 EMCal
+1EJ2 L1 CTP: 3 EMCal
+1EG2 L1 CTP: 4 EMCal
+1PHL L1 CTP: 5 PHOS
+1PHM L1 CTP: 6 PHOS
+1PHH L1 CTP: 7 PHOS
+1DUM L1 CTP: 12 DAQ_TEST
+1HCO L1 CTP: 9 TRD
+1HJT L1 CTP: 10 TRD
+1HSE L1 CTP: 11 TRD
+1ZMD L1 CTP: 15 ZDC
+1ZMB L1 CTP: 17 ZDC
+1ZED L1 CTP: 18 ZDC
+1ZAC L1 CTP: 19 ZDC
+2DUM L2 CTP: 12 DAQ_TEST
+ALLNOTRD ndet=15
+SPD SDD SSD TPC TOF HMPID PHOS MUON_TRK MUON_TRG FMD T0 V0 ZDC ACORDE EMCal nclasses= 21
+CBEAMB-S-NOPF-ALLNOTRD Index= 1 ALLNOTRD 0x1f121fa0 
+ Group=1 Time=1
+CINT7-S-NOPF-ALLNOTRD Index= 2 ALLNOTRD 0x1f121fa0 
+ Group=9 Time=239
+CINT7-AC-NOPF-ALLNOTRD Index= 3 ALLNOTRD 0x1f121fa0 
+ Group=9 Time=239
+CINT7-E-NOPF-ALLNOTRD Index= 4 ALLNOTRD 0x1f121fa0 
+ Group=9 Time=239
+C0VGA-S-NOPF-ALLNOTRD Index= 5 ALLNOTRD 0x1f121fa0 
+ Group=9 Time=239
+C0VGA-AC-NOPF-ALLNOTRD Index= 6 ALLNOTRD 0x1f121fa0 
+ Group=9 Time=239
+C0VGA-E-NOPF-ALLNOTRD Index= 7 ALLNOTRD 0x1f121fa0 
+ Group=9 Time=239
+C0VGC-S-NOPF-ALLNOTRD Index= 8 ALLNOTRD 0x1f121fa0 
+ Group=9 Time=239
+C0VGC-AC-NOPF-ALLNOTRD Index= 9 ALLNOTRD 0x1f121fa0 
+ Group=9 Time=239
+C0VGC-E-NOPF-ALLNOTRD Index= 10 ALLNOTRD 0x1f121fa0 
+ Group=9 Time=239
+CPHI7-S-NOPF-ALLNOTRD Index= 11 ALLNOTRD 0x1f121fa0 
+ Group=9 Time=239
+CPHI7-ACE-NOPF-ALLNOTRD Index= 12 ALLNOTRD 0x1f121fa0 
+ Group=9 Time=239
+CEMC7-S-NOPF-ALLNOTRD Index= 13 ALLNOTRD 0x1f121fa0 
+ Group=9 Time=239
+CEMC7-ACE-NOPF-ALLNOTRD Index= 14 ALLNOTRD 0x1f121fa0 
+ Group=9 Time=239
+CVBAND-S-NOPF-ALLNOTRD Index= 15 ALLNOTRD 0x1f121fa0 
+ Group=0 Time=0
+CVBAND-ACE-NOPF-ALLNOTRD Index= 16 ALLNOTRD 0x1f121fa0 
+ Group=0 Time=0
+CVBAND-ABCE-NOPF-ALLNOTRD Index= 17 ALLNOTRD 0x1f121fa0 
+ Group=0 Time=0
+C0TVX-S-NOPF-ALLNOTRD Index= 18 ALLNOTRD 0x1f121fa0 
+ Group=0 Time=0
+C0TVX-ACE-NOPF-ALLNOTRD Index= 19 ALLNOTRD 0x1f121fa0 
+ Group=0 Time=0
+CMSL8-S-NOPF-ALLNOTRD Index= 20 ALLNOTRD 0x1f121fa0 
+ Group=0 Time=0
+CMSL8-ACE-NOPF-ALLNOTRD Index= 21 ALLNOTRD 0x1f121fa0 
+ Group=0 Time=0
+ALL ndet=16
+SPD SDD SSD TPC TRD TOF HMPID PHOS MUON_TRK MUON_TRG FMD T0 V0 ZDC ACORDE EMCal nclasses= 4
+CBEAMBWU-S-NOPF-ALL Index= 22 ALL 0x1f122660 
+ Group=1 Time=1
+CINT7WU-S-NOPF-ALL Index= 23 ALL 0x1f122660 
+ Group=9 Time=239
+CINT7WU-AC-NOPF-ALL Index= 24 ALL 0x1f122660 
+ Group=9 Time=239
+CINT7WU-E-NOPF-ALL Index= 25 ALL 0x1f122660 
+ Group=9 Time=239
+MUON ndet=7
+MUON_TRK MUON_TRG SPD SSD T0 V0 ZDC nclasses= 10
+CMSL7-S-NOPF-MUON Index= 26 MUON 0x1f122ba0 
+ Group=9 Time=239
+CMSL7-ACE-NOPF-MUON Index= 27 MUON 0x1f122ba0 
+ Group=9 Time=239
+CMSH7-S-NOPF-MUON Index= 28 MUON 0x1f122ba0 
+ Group=9 Time=239
+CMSH7-ACE-NOPF-MUON Index= 29 MUON 0x1f122ba0 
+ Group=9 Time=239
+CMLL7-S-NOPF-MUON Index= 30 MUON 0x1f122ba0 
+ Group=9 Time=239
+CMLL7-ACE-NOPF-MUON Index= 31 MUON 0x1f122ba0 
+ Group=9 Time=239
+CMUL7-S-NOPF-MUON Index= 32 MUON 0x1f122ba0 
+ Group=9 Time=239
+CMUL7-ACE-NOPF-MUON Index= 33 MUON 0x1f122ba0 
+ Group=9 Time=239
+CMUP3-S-NOPF-MUON Index= 34 MUON 0x1f122ba0 
+ Group=9 Time=239
+CMUP3-ACE-NOPF-MUON Index= 35 MUON 0x1f122ba0 
+ Group=9 Time=239
+ACOS ndet=3
+TPC ACORDE TOF nclasses= 1
+C0AMU-ABCE-NOPF-ACOS Index= 36 ACOS 0x1f123080 
+ Group=0 Time=0
+TPC ndet=1
+TPC nclasses= 1
+C0LSR-ABCE-NOPF-TPC Index= 37 TPC 0x1f123540 
+ Group=0 Time=0
+0VBA L0 CTP: 1 V0
+0VBC L0 CTP: 2 V0
+0SMB L0 CTP: 3 SPD
+0TVX L0 CTP: 4 T0
+0VGC L0 CTP: 5 V0
+0VGA L0 CTP: 6 V0
+0SH1 L0 CTP: 7 SPD
+0SH2 L0 CTP: 8 SPD
+0SM2 L0 CTP: 9 SPD
+0AMU L0 CTP: 10 ACORDE
+0OB0 L0 CTP: 11 TOF
+0OM2 L0 CTP: 12 TOF
+0MSL L0 CTP: 13 MUON_TRG
+0MSH L0 CTP: 14 MUON_TRG
+0MUL L0 CTP: 15 MUON_TRG
+0MLL L0 CTP: 16 MUON_TRG
+0EMC L0 CTP: 17 EMCal
+0PH0 L0 CTP: 18 PHOS
+0HWU L0 CTP: 19 TRD
+0LSR L0 CTP: 20 TPC
+0TSC L0 CTP: 21 T0
+0BPA L0 CTP: 22 DAQ_TEST
+0BPC L0 CTP: 23 DAQ_TEST
+0SCO L0 CTP: 24 SPD
+1EJE L1 CTP: 1 EMCal
+1EGA L1 CTP: 2 EMCal
+1EJ2 L1 CTP: 3 EMCal
+1EG2 L1 CTP: 4 EMCal
+1PHL L1 CTP: 5 PHOS
+1PHM L1 CTP: 6 PHOS
+1PHH L1 CTP: 7 PHOS
+1DUM L1 CTP: 12 DAQ_TEST
+1HCO L1 CTP: 9 TRD
+1HJT L1 CTP: 10 TRD
+1HSE L1 CTP: 11 TRD
+1ZMD L1 CTP: 15 ZDC
+1ZMB L1 CTP: 17 ZDC
+1ZED L1 CTP: 18 ZDC
+1ZAC L1 CTP: 19 ZDC
+2DUM L2 CTP: 12 DAQ_TEST
+ALLNOTRD ndet=15
+SPD SDD SSD TPC TOF HMPID PHOS MUON_TRK MUON_TRG FMD T0 V0 ZDC ACORDE EMCal nclasses= 21
+CBEAMB-S-NOPF-ALLNOTRD Index= 1 ALLNOTRD 0x1f121fa0 
+ Group=1 Time=1
+CINT7-S-NOPF-ALLNOTRD Index= 2 ALLNOTRD 0x1f121fa0 
+ Group=9 Time=239
+CINT7-AC-NOPF-ALLNOTRD Index= 3 ALLNOTRD 0x1f121fa0 
+ Group=9 Time=239
+CINT7-E-NOPF-ALLNOTRD Index= 4 ALLNOTRD 0x1f121fa0 
+ Group=9 Time=239
+C0VGA-S-NOPF-ALLNOTRD Index= 5 ALLNOTRD 0x1f121fa0 
+ Group=9 Time=239
+C0VGA-AC-NOPF-ALLNOTRD Index= 6 ALLNOTRD 0x1f121fa0 
+ Group=9 Time=239
+C0VGA-E-NOPF-ALLNOTRD Index= 7 ALLNOTRD 0x1f121fa0 
+ Group=9 Time=239
+C0VGC-S-NOPF-ALLNOTRD Index= 8 ALLNOTRD 0x1f121fa0 
+ Group=9 Time=239
+C0VGC-AC-NOPF-ALLNOTRD Index= 9 ALLNOTRD 0x1f121fa0 
+ Group=9 Time=239
+C0VGC-E-NOPF-ALLNOTRD Index= 10 ALLNOTRD 0x1f121fa0 
+ Group=9 Time=239
+CPHI7-S-NOPF-ALLNOTRD Index= 11 ALLNOTRD 0x1f121fa0 
+ Group=9 Time=239
+CPHI7-ACE-NOPF-ALLNOTRD Index= 12 ALLNOTRD 0x1f121fa0 
+ Group=9 Time=239
+CEMC7-S-NOPF-ALLNOTRD Index= 13 ALLNOTRD 0x1f121fa0 
+ Group=9 Time=239
+CEMC7-ACE-NOPF-ALLNOTRD Index= 14 ALLNOTRD 0x1f121fa0 
+ Group=9 Time=239
+CVBAND-S-NOPF-ALLNOTRD Index= 15 ALLNOTRD 0x1f121fa0 
+ Group=0 Time=0
+CVBAND-ACE-NOPF-ALLNOTRD Index= 16 ALLNOTRD 0x1f121fa0 
+ Group=0 Time=0
+CVBAND-ABCE-NOPF-ALLNOTRD Index= 17 ALLNOTRD 0x1f121fa0 
+ Group=0 Time=0
+C0TVX-S-NOPF-ALLNOTRD Index= 18 ALLNOTRD 0x1f121fa0 
+ Group=0 Time=0
+C0TVX-ACE-NOPF-ALLNOTRD Index= 19 ALLNOTRD 0x1f121fa0 
+ Group=0 Time=0
+CMSL8-S-NOPF-ALLNOTRD Index= 20 ALLNOTRD 0x1f121fa0 
+ Group=0 Time=0
+CMSL8-ACE-NOPF-ALLNOTRD Index= 21 ALLNOTRD 0x1f121fa0 
+ Group=0 Time=0
+ALL ndet=16
+SPD SDD SSD TPC TRD TOF HMPID PHOS MUON_TRK MUON_TRG FMD T0 V0 ZDC ACORDE EMCal nclasses= 4
+CBEAMBWU-S-NOPF-ALL Index= 22 ALL 0x1f122660 
+ Group=1 Time=1
+CINT7WU-S-NOPF-ALL Index= 23 ALL 0x1f122660 
+ Group=9 Time=239
+CINT7WU-AC-NOPF-ALL Index= 24 ALL 0x1f122660 
+ Group=9 Time=239
+CINT7WU-E-NOPF-ALL Index= 25 ALL 0x1f122660 
+ Group=9 Time=239
+MUON ndet=7
+MUON_TRK MUON_TRG SPD SSD T0 V0 ZDC nclasses= 10
+CMSL7-S-NOPF-MUON Index= 26 MUON 0x1f122ba0 
+ Group=9 Time=239
+CMSL7-ACE-NOPF-MUON Index= 27 MUON 0x1f122ba0 
+ Group=9 Time=239
+CMSH7-S-NOPF-MUON Index= 28 MUON 0x1f122ba0 
+ Group=9 Time=239
+CMSH7-ACE-NOPF-MUON Index= 29 MUON 0x1f122ba0 
+ Group=9 Time=239
+CMLL7-S-NOPF-MUON Index= 30 MUON 0x1f122ba0 
+ Group=9 Time=239
+CMLL7-ACE-NOPF-MUON Index= 31 MUON 0x1f122ba0 
+ Group=9 Time=239
+CMUL7-S-NOPF-MUON Index= 32 MUON 0x1f122ba0 
+ Group=9 Time=239
+CMUL7-ACE-NOPF-MUON Index= 33 MUON 0x1f122ba0 
+ Group=9 Time=239
+CMUP3-S-NOPF-MUON Index= 34 MUON 0x1f122ba0 
+ Group=9 Time=239
+CMUP3-ACE-NOPF-MUON Index= 35 MUON 0x1f122ba0 
+ Group=9 Time=239
+ACOS ndet=3
+TPC ACORDE TOF nclasses= 1
+C0AMU-ABCE-NOPF-ACOS Index= 36 ACOS 0x1f123080 
+ Group=0 Time=0
+TPC ndet=1
+TPC nclasses= 1
+C0LSR-ABCE-NOPF-TPC Index= 37 TPC 0x1f123540 
+ Group=0 Time=0
+DisplayScal created for run 179604
+Stopping DisplaySCAL for run: 0
+deleting inputs
+0 0x1f0f9680
+1 0x1f0f9730
+2 0x1f0f77c0
+3 0x1f0f7870
+12 0x1f0f7920
+50 0x1f0f8250
+51 0x1f0f81a0
+52 0x1f0f95d0
+DisplaySCAL for run: 0 stopped.
+Stopping run 0
+02.05.2012_14:22:33 ActiveRun: File: /usr/local/trigger/v/vme/CFG/ctp/monscal/inputs.mcfg opened.
+INT in the list of inputs.
+02.05.2012_14:22:33 ActiveRun: File: /usr/local/trigger/v/vme/CFG/ctp/DB/VALID.CTPINPUTS opened.
+0VBA L0 CTP: 1 V0
+0VBC L0 CTP: 2 V0
+TriggerInputwCount: factor set to 4 for input 0SMB
+0SMB L0 CTP: 3 SPD
+0TVX L0 CTP: 4 T0
+0MSL L0 CTP: 13 MUON_TRG
+Starting run 0
+Creating DisplaySCAL ver 1
+Starting DisplaySCAL for run: 0
+0VBA L0 CTP: 1 V0
+0VBC L0 CTP: 2 V0
+0SMB L0 CTP: 3 SPD
+0TVX L0 CTP: 4 T0
+0MSL L0 CTP: 13 MUON_TRG
+0VBA L0 CTP: 1 V0
+0VBC L0 CTP: 2 V0
+0SMB L0 CTP: 3 SPD
+0TVX L0 CTP: 4 T0
+0MSL L0 CTP: 13 MUON_TRG
+ivln= 54 ivhn=54
+DisplayScal created for run 0
+Drawing canvas classes 179604_ALLNOTRD.png
+CINT7-S
+C0VGA-S
+C0VGC-S
+CPHI7-S
+CEMC7-S
+CVBAND-S
+C0TVX-S
+CMSL8-S
+Canvas classes created
+Canvas before update
+Canvas before save
+Info in <TCanvas::Print>: png file 179604_ALLNOTRD.png has been created
+Canvas class saved
+scp 179604_ALLNOTRD.png trigger@alidcscom188:v/vme/WORK/MONSCAL/. rc= 0
+Drawing canvas classes 179604_ALL.png
+CINT7WU-S
+Canvas classes created
+Canvas before update
+Canvas before save
+Info in <TCanvas::Print>: png file 179604_ALL.png has been created
+Canvas class saved
+scp 179604_ALL.png trigger@alidcscom188:v/vme/WORK/MONSCAL/. rc= 0
+Drawing canvas Inputs
+Canvas created 
+Canvas drawn 
+Info in <TCanvas::Print>: png file inputs.png has been created
+Canvas saved
+scp inputs.png trigger@alidcscom188:v/vme/WORK/MONSCAL/. rc= 0
+Drawing canvas classes 179604_ALLNOTRD.png
+CINT7-S
+C0VGA-S
+C0VGC-S
+CPHI7-S
+CEMC7-S
+CVBAND-S
+C0TVX-S
+CMSL8-S
+Canvas classes created
+Canvas before update
+Canvas before save
+Info in <TCanvas::Print>: png file 179604_ALLNOTRD.png has been created
+Canvas class saved
+scp 179604_ALLNOTRD.png trigger@alidcscom188:v/vme/WORK/MONSCAL/. rc= 0
+Drawing canvas classes 179604_ALL.png
+CINT7WU-S
+Canvas classes created
+Canvas before update
+Canvas before save
+Info in <TCanvas::Print>: png file 179604_ALL.png has been created
+Canvas class saved
+scp 179604_ALL.png trigger@alidcscom188:v/vme/WORK/MONSCAL/. rc= 0
+Drawing canvas Inputs
+Canvas created 
+Canvas drawn 
+Info in <TCanvas::Print>: png file inputs.png has been created
+Canvas saved
+scp inputs.png trigger@alidcscom188:v/vme/WORK/MONSCAL/. rc= 0
+Drawing canvas classes 179604_ALLNOTRD.png
+CINT7-S
+C0VGA-S
+C0VGC-S
+CPHI7-S
+CEMC7-S
+CVBAND-S
+C0TVX-S
+CMSL8-S
+Canvas classes created
+Canvas before update
+Canvas before save
+Info in <TCanvas::Print>: png file 179604_ALLNOTRD.png has been created
+Canvas class saved
+scp 179604_ALLNOTRD.png trigger@alidcscom188:v/vme/WORK/MONSCAL/. rc= 0
+Drawing canvas classes 179604_ALL.png
+CINT7WU-S
+Canvas classes created
+Canvas before update
+Canvas before save
+Info in <TCanvas::Print>: png file 179604_ALL.png has been created
+Canvas class saved
+scp 179604_ALL.png trigger@alidcscom188:v/vme/WORK/MONSCAL/. rc= 0
+Drawing canvas Inputs
+Canvas created 
+Canvas drawn 
+Info in <TCanvas::Print>: png file inputs.png has been created
+Canvas saved
+scp inputs.png trigger@alidcscom188:v/vme/WORK/MONSCAL/. rc= 0
+Drawing canvas classes 179604_ALLNOTRD.png
+CINT7-S
+C0VGA-S
+C0VGC-S
+CPHI7-S
+CEMC7-S
+CVBAND-S
+C0TVX-S
+CMSL8-S
+Canvas classes created
+Canvas before update
+Canvas before save
+Info in <TCanvas::Print>: png file 179604_ALLNOTRD.png has been created
+Canvas class saved
+scp 179604_ALLNOTRD.png trigger@alidcscom188:v/vme/WORK/MONSCAL/. rc= 0
+Drawing canvas classes 179604_ALL.png
+CINT7WU-S
+Canvas classes created
+Canvas before update
+Canvas before save
+Info in <TCanvas::Print>: png file 179604_ALL.png has been created
+Canvas class saved
+scp 179604_ALL.png trigger@alidcscom188:v/vme/WORK/MONSCAL/. rc= 0
+Drawing canvas Inputs
+Canvas created 
+Canvas drawn 
+Info in <TCanvas::Print>: png file inputs.png has been created
+Canvas saved
+scp inputs.png trigger@alidcscom188:v/vme/WORK/MONSCAL/. rc= 0
+Drawing canvas classes 179604_ALLNOTRD.png
+CINT7-S
+C0VGA-S
+C0VGC-S
+CPHI7-S
+CEMC7-S
+CVBAND-S
+C0TVX-S
+CMSL8-S
+Canvas classes created
+Canvas before update
+Canvas before save
+Info in <TCanvas::Print>: png file 179604_ALLNOTRD.png has been created
+Canvas class saved
+scp 179604_ALLNOTRD.png trigger@alidcscom188:v/vme/WORK/MONSCAL/. rc= 0
+Drawing canvas classes 179604_ALL.png
+CINT7WU-S
+Canvas classes created
+Canvas before update
+Canvas before save
+Info in <TCanvas::Print>: png file 179604_ALL.png has been created
+Canvas class saved
+scp 179604_ALL.png trigger@alidcscom188:v/vme/WORK/MONSCAL/. rc= 0
+Drawing canvas Inputs
+Canvas created 
+Canvas drawn 
+Info in <TCanvas::Print>: png file inputs.png has been created
+Canvas saved
+scp inputs.png trigger@alidcscom188:v/vme/WORK/MONSCAL/. rc= 0
+Drawing canvas classes 179604_ALLNOTRD.png
+CINT7-S
+C0VGA-S
+C0VGC-S
+CPHI7-S
+CEMC7-S
+CVBAND-S
+C0TVX-S
+CMSL8-S
+Canvas classes created
+Canvas before update
+Canvas before save
+Info in <TCanvas::Print>: png file 179604_ALLNOTRD.png has been created
+Canvas class saved
+scp 179604_ALLNOTRD.png trigger@alidcscom188:v/vme/WORK/MONSCAL/. rc= 0
+Drawing canvas classes 179604_ALL.png
+CINT7WU-S
+Canvas classes created
+Canvas before update
+Canvas before save
+Info in <TCanvas::Print>: png file 179604_ALL.png has been created
+Canvas class saved
+scp 179604_ALL.png trigger@alidcscom188:v/vme/WORK/MONSCAL/. rc= 0
+Drawing canvas Inputs
+Canvas created 
+Canvas drawn 
+Info in <TCanvas::Print>: png file inputs.png has been created
+Canvas saved
+scp inputs.png trigger@alidcscom188:v/vme/WORK/MONSCAL/. rc= 0

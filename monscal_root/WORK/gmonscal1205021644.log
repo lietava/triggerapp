@@ -1,0 +1,40 @@
+readVALIDLTUS: File: /usr/local/trigger/v/vme/CFG/ctp/DB/VALID.LTUS opened.
+Machine: alidcscom707 7
+02.05.2012_16:41:19 ActiveRun: File: /usr/local/trigger/v/vme/CFG/ctp/monscal/inputs.mcfg opened.
+INT in the list of inputs.
+02.05.2012_16:41:19 ActiveRun: File: /usr/local/trigger/v/vme/CFG/ctp/DB/VALID.CTPINPUTS opened.
+0VBA L0 CTP: 1 V0
+0VBC L0 CTP: 2 V0
+TriggerInputwCount: factor set to 4 for input 0SMB
+0SMB L0 CTP: 3 SPD
+0TVX L0 CTP: 4 T0
+0MSL L0 CTP: 13 MUON_TRG
+Starting run 0
+Creating DisplaySCAL ver 1
+Starting DisplaySCAL for run: 0
+0VBA L0 CTP: 1 V0
+0VBC L0 CTP: 2 V0
+0SMB L0 CTP: 3 SPD
+0TVX L0 CTP: 4 T0
+0MSL L0 CTP: 13 MUON_TRG
+0VBA L0 CTP: 1 V0
+0VBC L0 CTP: 2 V0
+0SMB L0 CTP: 3 SPD
+0TVX L0 CTP: 4 T0
+0MSL L0 CTP: 13 MUON_TRG
+Opening MONSCAL/display.log
+ivln= 54 ivhn=54
+DisplayScal created for run 0
+Monscal created, version 1 Output option= 1
+Drawing canvas Inputs
+Canvas created 
+Canvas drawn 
+Info in <TCanvas::Print>: png file inputs.png has been created
+Canvas saved
+scp inputs.png trigger@alidcscom188:v/vme/WORK/MONSCAL/. rc= 0
+Drawing canvas Inputs
+Canvas created 
+Canvas drawn 
+Info in <TCanvas::Print>: png file inputs.png has been created
+Canvas saved
+scp inputs.png trigger@alidcscom188:v/vme/WORK/MONSCAL/. rc= 0
