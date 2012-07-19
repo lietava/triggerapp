@@ -1,10 +1,10 @@
 #include "extract.h"
-#include <fstream>
 #include <sstream>
 #include "TH1F.h"
 #include "TH2F.h"
 #include "TObjArray.h"
 #include "TCanvas.h"
+#include "TMath.h"
 #define Mega 1024*1024
 typedef unsigned int w32;
 
@@ -78,29 +78,50 @@ void Hists::printAllHists(){
    c1.SaveAs(file.c_str());
  }
 }
-//-------------------------------------------------------------
+//=======================================================================================ssmpoint
 void ssmpoint::Print(){
   cout << "ssm="<< issm << " ch=" << chanabs<<" ch2inp=" << chanrel << " pos=" << position << endl;
 }
-//-------------------------------------------------------
-Input::Input(string &name,int delay,int index)
+//=======================================================================================Input
+Input::Input(string &name,int delay,int index,int level)
 :
-name(name),delay(delay),index(index),used(0)
-{}
+name(name),delay(delay),index(index),level(level),counts(1),used(0)
+{
+ channel=index+7;  // for L0
+}
+void Input::Print()
+{
+ cout << name << " level: " << level << " index: " << index<< " channel: "<< channel << " used: " << used << endl;
+}
+//========================================================================================extractData
 //---------------------------------------------------
 extractData::extractData(char* config):
-Nchans(60)
+cordist_d(0),delta_d(0),nfiles(0),nssms(0),Nchans(60)
 {
  //FileList_d=FileList;
  //DataDir_d=DataDir;
- nfiles=0;
+ openRepFile();
  if(ReadConfig(config)) exit(1);
- cordist_d=0;delta_d=0;
- chosenInputs = new int[Nchans];
- chan2inp = new int[Nchans];
+ chan2inp = new int[Nchans];  // this has be modified for l1,l2 boards
+ inp2chan = new int[Nchans];
  chans = new int[Nchans];
  chansd = new int[Nchans];
- nssms=0;
+ for(int i=0;i<Nchans;i++){
+    chan2inp[i] = -1;
+    inp2chan[i] = -1;
+    chans[i]=0;
+    chansd[i]=0;
+ }
+}
+extractData::~extractData()
+{
+ repFile.close();
+}
+//-----------------------------------------------------------
+void extractData::openRepFile()
+{
+  repFile.open("report.txt",ios_base::app);
+
 }
 //------------------------------------------------------
 int extractData::ReadConfig(char* config)
@@ -117,7 +138,7 @@ int extractData::ReadConfig(char* config)
   int nlines=0;
   string line;
   while (getline(in,line)) {
-      cout << nlines << " " << line << endl;
+      //cout << nlines << " " << line << endl;
       if(line[0]=='#') continue;
       if(nlines==0){
        VALIDCTPINPUTS_d=line;
@@ -133,15 +154,34 @@ int extractData::ReadConfig(char* config)
        vector<string> items;
        splitstring(line,items," ");
        unsigned int nit=items.size();
-       for(unsigned int i=0;i<nit;i++){
-          unsigned int j=0;
-          while(j < inputs.size() && (inputs.at(j)).name.find(items[i]) == string::npos)j++;
-          if(j==inputs.size()){
-           cout << "Input " << items[i] << " not found in VALID.CTPINPUTS" << endl;
-           return 1;
-          }
-          cout << "Choosing input: " << items[i] << endl;
-          inputs.at(j).used=1;
+       if(nit == 0){
+         cout << "Error in config file, 0 inputs selected." << endl;
+         return 1;
+       }
+       if(items[0].find("ALL") != string::npos){
+         cout << "ALL inputs are to be used." << endl;
+         unsigned int j=0;
+         while(j < inputs.size()){
+           //cout << inputs.at(j).name << " " << inputs.at(j).level << endl;
+           bool nadd=0; 
+           nadd += inputs.at(j).name.find("0BP") != string::npos;
+           nadd += inputs.at(j).name.find("0LSR") != string::npos;
+           if(!nadd){
+             if((inputs.at(j)).level==0)inputs.at(j).used=1;
+  	   }
+           j++;
+         }
+       }else{
+         for(unsigned int i=0;i<nit;i++){
+           unsigned int j=0;
+           while(j < inputs.size() && (inputs.at(j)).name.find(items[i]) == string::npos)j++;
+           if(j==inputs.size()){
+            cout << "Input " << items[i] << " not found in VALID.CTPINPUTS" << endl;
+            return 1;
+           }
+           //cout << "Choosing input: " << items[i] << endl;
+           inputs.at(j).used=1;
+        }
        }
        nlines++;
       }else if(nlines==4){
@@ -163,6 +203,8 @@ int extractData::ReadConfig(char* config)
          ddelta_d=atoi(items[1].c_str());
          cout << "config.txt: FROM SIZE " << dcordist_d << " " << ddelta_d << endl;
          nlines++;
+      }else if(nlines==7){
+         input2correlate_d=line;
       }else{
        cout << "config.txt: Unexpected number of lines." << endl;
        return 1;
@@ -195,9 +237,10 @@ int extractData::ParseVALIDCTPINPUTS()
        return 1;
       }
       int index=atoi(items[4].c_str());
+      int level=atoi(items[2].c_str()); 
       vector<Input>::iterator i= inputs.begin();
       while(i != inputs.end() && (i->index<index))i++;
-      inputs.insert(i,Input(items[0],atoi(items[8].c_str()),index));
+      inputs.insert(i,Input(items[0],atoi(items[8].c_str()),index,level));
       nlines++;
    }
    in.close();
@@ -206,30 +249,25 @@ int extractData::ParseVALIDCTPINPUTS()
 //------------------------------------------------------
 void extractData::chooseInputs(){
  for(int i=0;i<Nchans;i++){
-    chosenInputs[i]=0;
     chan2inp[i] = -1;
+    inp2chan[i] = -1;
  }
- //check these
+ inputNames.clear();
+ //
+ ninputs=0;
+ cout << "Adding inputs:" << endl;
  for(unsigned int i=0;i<inputs.size();i++){
-  if(inputs.at(i).used){
-   chosenInputs[i]=inputs.at(i).index;
+  if(inputs.at(i).used ){
+   int index=inputs.at(i).index;
+   chan2inp[index+7]=1;
+   inp2chan[ninputs]=index+7;
    inputNames.push_back(inputs.at(i).name);
-   cout << "Adding input: " << inputs.at(i).name << " " << inputs.at(i).index << " i=" << i << endl;
+   ninputs++;
+   //cout << "Adding input: " << inputs.at(i).name << " index=" << inputs.at(i).index << " i=" << i << endl;
+   inputs.at(i).Print();
   }
  }
- ninputs=0;
- for(int i=0;i<Nchans;i++){
-   if(chosenInputs[i]){
-     chan2inp[chosenInputs[i]+7]=1;
-     cout << ninputs<< " ch="<<chosenInputs[i]+7<<" " << chan2inp[chosenInputs[i]+7] << endl;
-     ninputs++;
-
-     }
- }  
  cout << "ninputs=" << ninputs << endl;
- ncorrelations=ninputs*(ninputs+1)/2;
- correlations = new int*[ncorrelations];
- orbit = new int*[ninputs];
  int j=0;
  for(int i=0;i<Nchans;i++){
   if(chan2inp[i] != -1){
@@ -237,11 +275,37 @@ void extractData::chooseInputs(){
     j++;
     }
  }
+ /*
  for(int i=0;i<Nchans;i++){
  if(chan2inp[i] != -1){
     cout << "inp= "<< i-7 << " chan= " << i << " " << inputNames[chan2inp[i]] << endl;
    }
+ }
+ */
 }
+//------------------------------------------------------------
+int extractData::extractBPX(int issm){
+ ifstream in;
+ string file(DataDir_d+ssmdumps[issm]); // can be parameter
+ in.open(file.c_str(),ios::in | ios::binary);
+ if(!in.is_open()){
+    cout << "extract1SSMfilt1: File not found: "<<  file  << endl;
+    return 1;
+ }
+ cout << file << " OK" << endl;
+ w32 ssm[Mega];
+ in.read((char*)ssm,sizeof(ssm));
+ in.close();
+ for (int i=0;i<Mega;i++){
+  if(!ssm[i]) continue;
+  // najdi bpx not finished
+  if(ssm[i] & (1<<chanbpa)){
+      ssmpoint p(issm,chanbpa,chanbpa-7,i);
+      //p.Print();
+      data.push_back(p);
+  }
+ }
+ return 0;
 }
 //------------------------------------------------------------
 int extractData::extract1SSMfilt1(int issm){
@@ -278,6 +342,7 @@ int extractData::extract1SSMfilt1(int issm){
       //p.Print();
       data.push_back(p);
       del[j]=SkipNext;
+      chans[j]++;
     }
    }
   }
@@ -328,6 +393,7 @@ int extractData::readFileList(){
       if (!in.good()) break;
       //cout << line << endl;
       if(line[0]=='#') continue;
+      if(line.find(".dmp") == string::npos) continue;
       filelist.push_back(line); 
       nlines_d++;
       if(nfiles && nlines_d>=nfiles)break;
@@ -342,6 +408,14 @@ int extractData::readFileList(){
 void extractData::extractAllSSM(){
  //for(int i=0;i<nssms;i++)extract1SSM(i);
  for(int i=0;i<nssms;i++)extract1SSMfilt1(i);
+ for(int i=0;i<ninputs;i++){
+    cout << "inp= " << inputNames[i] << " #signals: " << chans[inp2chan[i]]<< endl;
+    }
+ for(unsigned int i=0;i<inputs.size();i++){
+   if(inputs.at(i).used){
+     if(chans[inputs.at(i).GetChannel()]==0)inputs.at(i).used=0;
+   }
+ }
 }
 //---------------------------------------------------------------
 void extractData::checkAllSSM(){
@@ -427,6 +501,7 @@ int extractData::checkSSMforData(int issm){
  return 1; 
 }
 //-------------------------------------------------------------------
+// Checking input by opening file
 int extractData::checkInputs(int issm){
  ifstream in;
  string file(DataDir_d+filelist[issm]);
@@ -455,9 +530,9 @@ int extractData::checkInputs(int issm){
  return 0;
 }
 //-----------------------------------------------------------
-// dist<0 always, since entries in data are increasing in time 
 int extractData::fill(int chan1,int chan2,int dist){
  if(chan1>chan2){
+  //return 0; // double counting
   dist=delta_d-dist;
   int ch=chan1; chan1=chan2;chan2=ch;
  } else dist=delta_d+dist;
@@ -466,8 +541,8 @@ int extractData::fill(int chan1,int chan2,int dist){
  return 0;
 }
 //-----------------------------------------------------------
-//int extractData::distance2Orbit(int cordist,int delta){
 int extractData::distance2Orbit(){
+ orbit = new int*[ninputs];
  //dcordist_d=cordist;
  //ddelta_d=delta;
  for (int i=0;i<ninputs;i++){
@@ -500,8 +575,59 @@ int extractData::distance2Orbit(){
  }
  return 0;
 }
+//--------------------------------------------------------------
+// uses same correlations as corrrelateAll
+int extractData::correlate2One(int cordist,int delta, string name)
+{
+ int input;
+ findInput(name,input);
+ int chanchosenrel=inp2chan[input]-7;
+ cout << " Chosen: " << name << " pos=" << input << " chanrel=" << chanchosenrel<< endl;
+ //ncorrelations=ninputs;
+ ncorrelations=ninputs*(ninputs+1)/2;
+ correlations = new int*[ncorrelations];
+ for (int i=0;i<ncorrelations;i++){
+   correlations[i]=new int[2*delta+1];
+   for(int j=0;j<2*delta+1;j++)correlations[i][j]=0;
+ }
+ delta_d=delta;
+ cordist_d=cordist;
+ int ndata=data.size();
+ cout << "# of data points= " << ndata << endl;
+ for(int i=0;i < ndata; i++){
+   ssmpoint *a = &data[i];
+   int chan=a->chanrel;
+   if(chan != input) continue;
+   int issm=a->issm;
+   int pos=a->position;
+   int j=i;
+   while((j<ndata) &&
+         (issm == data[j].issm) && 
+         //(chan <= data[j].chanrel) &&
+         (abs(pos - data[j].position - cordist) <= delta)
+   ){
+    fill(chan,data[j].chanrel,pos-data[j].position);
+    j++;
+   }
+   j=i-1;
+   while((j>=0) &&
+         (issm == data[j].issm) && 
+         //(chan <= data[j].chanrel) &&
+         (abs(pos - data[j].position - cordist) <= delta)
+   ){
+    fill(chan,data[j].chanrel,pos-data[j].position);
+    j--;
+   }
+ }
+ cout << "Correlation2One finished" << endl;
+ printCorrelations2One(name);
+ //printCorrelations();
+ return 0;
+}
 //-----------------------------------------------------------
 int extractData::correlateAllSSM(int cordist,int delta){
+ ncorrelations=ninputs*(ninputs+1)/2;
+ correlations = new int*[ncorrelations];
  for (int i=0;i<ncorrelations;i++){
    correlations[i]=new int[2*delta+1];
    for(int j=0;j<2*delta+1;j++)correlations[i][j]=0;
@@ -524,7 +650,6 @@ int extractData::correlateAllSSM(int cordist,int delta){
     fill(chan,data[j].chanrel,pos-data[j].position);
     j++;
    }
-   /*
    j=i-1;
    while((j>=0) &&
          (issm == data[j].issm) && 
@@ -534,7 +659,6 @@ int extractData::correlateAllSSM(int cordist,int delta){
     fill(chan,data[j].chanrel,pos-data[j].position);
     j--;
    }
-   */
  }
  return 0;
 }
@@ -569,6 +693,211 @@ void extractData::printDistance()
   //cout << endl;
  }
 }
+//------------------------------------------------------------------
+float extractData::chi2(int delta,int* delay){
+ float chi=0.;
+ for(int m=0;m<ninputs;m++){
+  for(int n=m;n<ninputs;n++){
+   if( (chans[inp2chan[m]]==0) || (chans[inp2chan[n]]==0) ) continue;
+   int k1=(2*ninputs-m-1)*m/2+n;
+   for(int i=0;i<ninputs;i++){
+    for(int j=i;j<ninputs;j++){
+     int k2=(2*ninputs-i-1)*i/2+j;
+     if(k2<=k1) continue;
+     if( (chans[inp2chan[i]]==0) || (chans[inp2chan[j]]==0) ) continue;
+     //cout << "k1,k2= " << k1 << " " << k2 << endl;
+     for(int l=2*delta;l<2*delta_d+1-2*delta;l++){
+        //fillHist(k,l+1,correlations[k][l]);
+        int delay1=delay[m]-delay[n];
+        int delay2=delay[i]-delay[j];
+        float del = norcorrs[k1][l+delay1]-norcorrs[k2][l+delay2];
+        float var = varcorrs[k1][l+delay1]+varcorrs[k2][l+delay2];
+        //var=1.;
+        //cout << del << " del,var " << var << endl;
+        //if(del) cout << "del=" << del << endl;
+        if(var) chi += del*del/var;
+     }
+    }
+   }
+  }
+ }
+ return chi;
+}
+//------------------------------------------------------------------
+int extractData::calculateMask(int* mask){
+  unsigned int j=0;
+  while(j < inputs.size() && (inputs.at(j)).name.find("0BPA") == string::npos)j++;
+  if(j==inputs.size()){
+     cout << "Input 0BPA not found in VALID.CTPINPUTS" << endl;
+     return 1;
+    }
+    cout << "Found 0BPA" << endl;
+  j=0;
+  while(j < inputs.size() && (inputs.at(j)).name.find("0BPC") == string::npos)j++;
+  if(j==inputs.size()){
+     cout << "Input 0BPC not found in VALID.CTPINPUTS" << endl;
+     return 1;
+    }
+    cout << "Found 0BPC" << endl;
+  return 0;
+}
+//------------------------------------------------------------------
+// Find position in ninputs, NOT chan
+int extractData::findInput(string& nameChosen, int& input){
+ int iChosen=-1;
+ for(int i=0;i<ninputs;i++){
+    string name(inputNames[i]);
+    if(name.find(nameChosen) != string::npos){
+      iChosen=i;
+      break;
+    }
+ }
+ if(iChosen==-1){
+   cout << "correlate2Orbit:: chosen input not found: " << nameChosen << endl;
+   return 1;
+ }
+ input=iChosen;
+ return 0;
+}
+//------------------------------------------------------------------
+// calculate correlations from orbit distance to chosen input
+int extractData::correlate2Orbit(int cordist,int delta, string nameChosen)
+{
+ //ncorrelations=ninputs*(ninputs+1)/2;
+ ncorrelations=ninputs;
+ correlaorbit = new float*[ncorrelations];
+ for (int i=0;i<ncorrelations;i++){
+   correlaorbit[i]=new float[2*delta+1];
+   for(int j=0;j<2*delta+1;j++)correlaorbit[i][j]=0;
+ }
+ delta_d=delta;   // this is to be cleaned - delta_d inputs on severa; places
+ cordist_d=cordist;
+ // find input
+ //string nameChosen("0TVX");
+ int iChosen;
+ findInput(nameChosen,iChosen);
+ cout << " Chosen: " << nameChosen << " pos=" << iChosen << endl;
+ // Calculate chi2
+ for(int k=0;k<ninputs;k++){
+    float min=FLT_MAX; 
+    int imin=INT_MAX;
+    cout << inputNames[k];
+    for(int i=-delta;i<delta+1;i++){
+       float sum=0.;
+       for(int j=0;j<ddelta_d;j++){
+          float diff=nororbit[iChosen][j]-nororbit[k][(j+i)%ddelta_d];
+          float var1=varorbit[k][(j+i)%ddelta_d];
+          float var2=varorbit[iChosen][j];
+          if(var1 || var2)sum += diff*diff/(var1+var2);  // add error
+       }
+       correlaorbit[k][i+delta]=sum;
+       if(sum<min){
+         min=sum;imin=i;
+       }
+       cout << " " << sum;
+    }
+    cout << " MIN= " << imin << endl;
+ } 
+ return 0;
+}
+//---------------------------------------------------------------------------------
+int extractData::normaliseDistance2Orbit()
+{
+ float norm[ninputs];
+ for(int i=0;i<ninputs;i++){
+   float sum=0;
+   for(int j=0;j<ddelta_d;j++) sum += orbit[i][j];
+   norm[i]=sum;
+   //cout << i << " norm " << norm[i] << endl;
+ }
+ nororbit = new float*[ninputs];
+ varorbit = new float*[ninputs];
+ for (int i=0;i<ninputs;i++){
+   nororbit[i]=new float[ddelta_d];
+   varorbit[i]=new float[ddelta_d];
+   for(int j=0;j<ddelta_d;j++){
+      nororbit[i][j]=0;
+      varorbit[i][j]=0;
+      if(norm[i]){
+        nororbit[i][j]=((float)orbit[i][j])/norm[i];
+        varorbit[i][j]=((float)orbit[i][j])/norm[i]/norm[i];
+        //cout << nororbit[i][j] << endl;
+      }
+   }
+ }
+ return 0;
+}
+//---------------------------------------------------------------------------------
+// delta here and checkallSSM can be different
+int extractData::checkDelaysOrb(int delta){
+ // calculate mask
+ //int mask[ddelta_d];
+ //calculateMask(mask);
+ // normalise orbit
+ return 0;
+}
+//------------------------------------------------------------------
+// delta here and checkallSSM can be different
+int extractData::checkDelaysCor(int delta){
+ // normalise
+ float norm[ncorrelations];
+ for(int i=0;i<ncorrelations;i++){
+   float sum=0;
+   for(int j=0;j<2*delta_d+1;j++) sum += correlations[i][j];
+   norm[i]=sum;
+   cout << i << " norm " << norm[i] << endl;
+ }
+ norcorrs = new float*[ncorrelations];
+ varcorrs = new float*[ncorrelations];
+ for(int i=0;i<ncorrelations;i++){
+   norcorrs[i]=new float[2*delta_d+1];
+   varcorrs[i]=new float[2*delta_d+1];
+   for(int j=0;j<2*delta_d+1;j++){
+      if(norm[i]){
+        norcorrs[i][j]= (float) correlations[i][j]/norm[i];
+        varcorrs[i][j] = norcorrs[i][j]/norm[i];
+      }else{
+        norcorrs[i][j] = 0.; 
+        varcorrs[i][j] = 0.;
+      }
+      //cout << i << " " << j << " " << norcorrs[i][j] << endl;
+   }
+ }
+ // calculate chi for different delays
+ int npow=1;
+ float chimin=FLT_MAX;
+ int delaymin[ninputs];
+ for(int i=0;i<ninputs-1;i++)npow=npow*(2*delta+1);
+ for(int i=0;i<npow;i++){
+   int delay[ninputs];
+   delay[ninputs-1]=0;
+   int num=i;
+   int numlessdigit; 
+   for(int j=0;j<ninputs-1;j++){
+      numlessdigit=num/(2*delta+1);
+      delay[j]=num-numlessdigit*(2*delta+1)-delta;
+      num=numlessdigit;
+   }
+   float chi=chi2(delta,delay);
+   if(chi<chimin){
+     chimin=chi;
+     for(int j=0;j<ninputs;j++)delaymin[j]=delay[j];
+   }
+   /*
+   if(chi){
+     cout << "Inputs: ";
+     for(int k=0;k<ninputs;k++) cout << delay[k] << " ";
+     cout << " chi2: "<< chi << endl;
+   }*/
+ }
+ cout << "Minimum chi2: " << chimin << endl;
+ cout << "Estimated Input Delays wrt to delays in VALIDCTP.INPUTS:" << endl;
+ for(int i=0;i<ninputs;i++){
+  if(chans[inp2chan[i]]) cout << inputNames[i] << ": " << delaymin[i] << endl;
+  else cout << inputNames[i] << " not available- no signal recorded" << endl;
+ }
+ return 0;
+}
 //-------------------------------------------------------------------
 void extractData::printCorrelations(){
  for(int i=0;i<ninputs;i++){
@@ -581,14 +910,56 @@ void extractData::printCorrelations(){
     int k=(2*ninputs-i-1)*i/2+j;
     cout << name << ":";
     cout << i << "x" << j << ": ";
-    int peak=0,offpeak=0;
+    //int peak=0,offpeak=0;
+    for(int l=0;l<2*delta_d+1;l++){
+     float m1=chans[inp2chan[i]];
+     float m2=chans[inp2chan[j]];
+     float N=nssms*Mega;
+     float cor=correlations[k][l]-m1*m1/N;
+     cor=cor/TMath::Sqrt(m1*(1-m1/N)*m2*(1-m2/N));
+     fillHist(k,l+1,correlations[k][l]);
+     //fillHist(k,l+1,cor);
+    }
+    //cout << peak << " off: "<< offpeak << endl;
+  }
+ }
+}
+//-------------------------------------------------------------------
+void extractData::printCorrelations2One(string& chname){
+ cout << "Correlations to input: " << input2correlate_d << endl;
+ repFile << "Correlations to input: " << input2correlate_d << endl;
+ int ihist=0;
+ for(int i=0;i<ninputs;i++){
+  for(int j=i;j<ninputs;j++){
+    std::stringstream ss;
+    ss << i << "x" << j;
+    string name("");
+    name=inputNames[i]+"x"+inputNames[j];
+    if(name.find(chname) == string::npos) continue;;
+    addHist(name,delta_d,cordist_d);
+    int k=(2*ninputs-i-1)*i/2+j;
+    //cout << name << ":";
+    //cout << i << "x" << j << ": ";
+    //int peak=0,offpeak=0;
+    int max=INT_MIN;
+    int imax=INT_MIN;
     for(int l=0;l<2*delta_d+1;l++){
      //cout << correlations[k][l] << " ";
-     fillHist(k,l+1,correlations[k][l]);
-     if(l==delta_d)peak = correlations[k][l];
-     else offpeak=offpeak+correlations[k][l];
+     fillHist(ihist,l+1,correlations[k][l]);
+     if(correlations[k][l]>max){
+       max=correlations[k][l];
+       imax=l-delta_d;
+     }
+     //if(l==delta_d)peak = correlations[k][l];
+     //else offpeak=offpeak+correlations[k][l];
     }
-    cout << peak << " off: "<< offpeak << endl;
+    ihist++;
+    cout << name << " MAX= " << imax << endl;
+    if(imax) 
+    repFile << "\033[1;32m>>> "<<name<<" MAX="<< imax  << "\033[0m\n";
+    else
+    repFile << name << " MAX= " << imax << endl;
+    //cout << peak << " off: "<< offpeak << endl;
   }
  }
 }
