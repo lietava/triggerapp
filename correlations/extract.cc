@@ -455,9 +455,9 @@ int extractData::checkInputs(int issm){
  return 0;
 }
 //-----------------------------------------------------------
+// dist<0 always, since entries in data are increasing in time 
 int extractData::fill(int chan1,int chan2,int dist){
  if(chan1>chan2){
-  //return 0; // double counting
   dist=delta_d-dist;
   int ch=chan1; chan1=chan2;chan2=ch;
  } else dist=delta_d+dist;
@@ -524,6 +524,7 @@ int extractData::correlateAllSSM(int cordist,int delta){
     fill(chan,data[j].chanrel,pos-data[j].position);
     j++;
    }
+   /*
    j=i-1;
    while((j>=0) &&
          (issm == data[j].issm) && 
@@ -533,6 +534,7 @@ int extractData::correlateAllSSM(int cordist,int delta){
     fill(chan,data[j].chanrel,pos-data[j].position);
     j--;
    }
+   */
  }
  return 0;
 }
