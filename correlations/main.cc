@@ -32,11 +32,11 @@ int main(int argc, char **argv) {
  //return 0;
  time.Start();
 //----------------------------------Corr direct
-  a.correlateAllSSM(0,10);  
-  a.printCorrelations();
-//-----------------------------------Corr 2 One
+//  a.correlateAllSSM(0,10);  
+//  a.printCorrelations();
+//-----------------------------------Corr 2 One with cor coef
  cout << "Correlations2One======================================================================="<<endl;
- //a.correlate2One(0,5,"0TVX");
+ a.correlate2OneAll(0,8);
  //a.correlate2One(0,5);
 //-----------------------------------Orbit
  //cout << "Correlations2Orbit====================================================================="<<endl;

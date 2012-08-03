@@ -1,9 +1,9 @@
 #include "extract.h"
 #include <sstream>
-#include "TH1F.h"
 #include "TH2F.h"
 #include "TObjArray.h"
 #include "TCanvas.h"
+#include "TDecompSVD.h"
 #include "TMath.h"
 #define Mega 1024*1024
 typedef unsigned int w32;
@@ -30,8 +30,10 @@ void splitstring(const string& str,
 }
 //-------------------------------------------------------
 Hists::Hists(){
+  hCorCoef = new TH1F("hCorCoef", "Multi Correlation coeficients",10000,0.,1.);
 }
 Hists::~Hists(){
+  delete hCorCoef;
 }
 int Hists::addHist(string const &name,int delta,int cordist){
  int nbins=2*delta+1;
@@ -63,6 +65,7 @@ int Hists::writeHists(){
   file = new TFile("pdf/Histos.root","RECREATE","FILE");
   hists.Write();
   hists2.Write();
+  hCorCoef->Write();
   file->Close();
  return 0;
 }
@@ -85,7 +88,7 @@ void ssmpoint::Print(){
 //=======================================================================================Input
 Input::Input(string &name,int delay,int index,int level)
 :
-name(name),delay(delay),index(index),level(level),counts(1),used(0)
+name(name),delay(delay),index(index),level(level),counts(1),used(-1)
 {
  channel=index+7;  // for L0
 }
@@ -161,17 +164,19 @@ int extractData::ReadConfig(char* config)
        if(items[0].find("ALL") != string::npos){
          cout << "ALL inputs are to be used." << endl;
          unsigned int j=0;
+         ninputs=0;
          while(j < inputs.size()){
            //cout << inputs.at(j).name << " " << inputs.at(j).level << endl;
            bool nadd=0; 
            nadd += inputs.at(j).name.find("0BP") != string::npos;
            nadd += inputs.at(j).name.find("0LSR") != string::npos;
            if(!nadd){
-             if((inputs.at(j)).level==0)inputs.at(j).used=1;
+             if((inputs.at(j)).level==0)inputs.at(j).used=ninputs++;
   	   }
            j++;
          }
        }else{
+         ninputs=0;
          for(unsigned int i=0;i<nit;i++){
            unsigned int j=0;
            while(j < inputs.size() && (inputs.at(j)).name.find(items[i]) == string::npos)j++;
@@ -180,7 +185,7 @@ int extractData::ReadConfig(char* config)
             return 1;
            }
            //cout << "Choosing input: " << items[i] << endl;
-           inputs.at(j).used=1;
+           inputs.at(j).used=ninputs++;
         }
        }
        nlines++;
@@ -205,6 +210,14 @@ int extractData::ReadConfig(char* config)
          nlines++;
       }else if(nlines==7){
          input2correlate_d=line;
+         unsigned int j=0;
+         while(j < inputs.size() && (inputs.at(j)).name.find(line) == string::npos)j++;
+         cout << "j=" << j << endl;
+         if(j==inputs.size() || inputs.at(j).used<0){
+           cout << "Chosen input " << line << " not found." << endl;
+           return 1; 
+         }
+         cout << "Chosen input: " << line << endl;
       }else{
        cout << "config.txt: Unexpected number of lines." << endl;
        return 1;
@@ -254,25 +267,23 @@ void extractData::chooseInputs(){
  }
  inputNames.clear();
  //
- ninputs=0;
+ unsigned int inppos[Nchans]; // intermediate variable
  cout << "Adding inputs:" << endl;
  for(unsigned int i=0;i<inputs.size();i++){
-  if(inputs.at(i).used ){
+  if(inputs.at(i).used >= 0 ){
    int index=inputs.at(i).index;
-   chan2inp[index+7]=1;
-   inp2chan[ninputs]=index+7;
-   inputNames.push_back(inputs.at(i).name);
-   ninputs++;
+   chan2inp[index+7]=inputs.at(i).used;
+   inp2chan[inputs.at(i).used]=index+7;
+   inppos[inputs.at(i).used] = i;
+   //ninputs++;
    //cout << "Adding input: " << inputs.at(i).name << " index=" << inputs.at(i).index << " i=" << i << endl;
    inputs.at(i).Print();
   }
  }
- cout << "ninputs=" << ninputs << endl;
- int j=0;
+ cout << "ninputs=" << ninputs <<  endl;
  for(int i=0;i<Nchans;i++){
-  if(chan2inp[i] != -1){
-    chan2inp[i]=j;
-    j++;
+  if(inp2chan[i] != -1){
+    inputNames.push_back(inputs.at(inppos[i]).name);
     }
  }
  /*
@@ -411,11 +422,14 @@ void extractData::extractAllSSM(){
  for(int i=0;i<ninputs;i++){
     cout << "inp= " << inputNames[i] << " #signals: " << chans[inp2chan[i]]<< endl;
     }
+ /*
+ Attempt to remove empty inputs - not finished
  for(unsigned int i=0;i<inputs.size();i++){
-   if(inputs.at(i).used){
-     if(chans[inputs.at(i).GetChannel()]==0)inputs.at(i).used=0;
+   if(inputs.at(i).used > 0){
+     if(chans[inputs.at(i).GetChannel()]==0)inputs.at(i).used=-1;
    }
  }
+ */
 }
 //---------------------------------------------------------------
 void extractData::checkAllSSM(){
@@ -576,14 +590,12 @@ int extractData::distance2Orbit(){
  return 0;
 }
 //--------------------------------------------------------------
-// uses same correlations as corrrelateAll
-int extractData::correlate2One(int cordist,int delta, string name)
+// Multiple correlation coefficient analysis
+int extractData::correlate2OneAll(int cordist,int delta)
 {
- int input;
- findInput(name,input);
- int chanchosenrel=inp2chan[input]-7;
- cout << " Chosen: " << name << " pos=" << input << " chanrel=" << chanchosenrel<< endl;
- //ncorrelations=ninputs;
+ // create TVectors
+ cvec = new TVectorD(ninputs-1);
+ var = new TMatrixD(ninputs-1,ninputs-1);
  ncorrelations=ninputs*(ninputs+1)/2;
  correlations = new int*[ncorrelations];
  for (int i=0;i<ncorrelations;i++){
@@ -591,37 +603,41 @@ int extractData::correlate2One(int cordist,int delta, string name)
    for(int j=0;j<2*delta+1;j++)correlations[i][j]=0;
  }
  delta_d=delta;
+ delta=delta/2;
  cordist_d=cordist;
- int ndata=data.size();
- cout << "# of data points= " << ndata << endl;
- for(int i=0;i < ndata; i++){
-   ssmpoint *a = &data[i];
-   int chan=a->chanrel;
-   if(chan != input) continue;
-   int issm=a->issm;
-   int pos=a->position;
-   int j=i;
-   while((j<ndata) &&
-         (issm == data[j].issm) && 
-         //(chan <= data[j].chanrel) &&
-         (abs(pos - data[j].position - cordist) <= delta)
-   ){
-    fill(chan,data[j].chanrel,pos-data[j].position);
-    j++;
+ correlateAllSSM(cordist,delta_d);
+ //-----------------------------------------------------------------------------------------
+ // normalise (like in printCorrel)
+ //normaliseCor(); - done in printCorr - needst ot be cleaned
+ printCorrelations();
+ // calculate multicorrelation  for different delays
+ int npow=1;
+ int delaymax[ninputs];
+ for(int i=0;i<ninputs-1;i++)npow=npow*(2*delta+1);
+ double ddmax=DBL_MIN,dd=DBL_MIN;
+ cout << "DELAYS:" << endl;
+ for(int i=0;i<npow;i++){
+   int delay[ninputs];
+   delay[ninputs-1]=0;
+   int num=i;
+   int numlessdigit; 
+   for(int j=0;j<ninputs-1;j++){
+      numlessdigit=num/(2*delta+1);
+      delay[j]=num-numlessdigit*(2*delta+1)-delta;
+      num=numlessdigit;
+      //cout << delay[j] << " ";
    }
-   j=i-1;
-   while((j>=0) &&
-         (issm == data[j].issm) && 
-         //(chan <= data[j].chanrel) &&
-         (abs(pos - data[j].position - cordist) <= delta)
-   ){
-    fill(chan,data[j].chanrel,pos-data[j].position);
-    j--;
+   //cout << endl;
+   dd=calculateCorCoef(delta,delay);  // Chosen inputs has to be first/
+   if(dd>ddmax){ 
+     ddmax=dd;
+     for(int j=0;j<ninputs-1;j++)delaymax[j]=delay[j];
    }
+   //cout << "dd= "<< dd << " ddmax= " << ddmax << endl;
  }
- cout << "Correlation2One finished" << endl;
- printCorrelations2One(name);
- //printCorrelations();
+ cout << "ddmax= " << ddmax << " delays: ";
+ for(int j=0;j<ninputs-1;j++)cout << delaymax[j] << " ";
+ cout << endl; 
  return 0;
 }
 //-----------------------------------------------------------
@@ -650,6 +666,7 @@ int extractData::correlateAllSSM(int cordist,int delta){
     fill(chan,data[j].chanrel,pos-data[j].position);
     j++;
    }
+   /*
    j=i-1;
    while((j>=0) &&
          (issm == data[j].issm) && 
@@ -659,6 +676,7 @@ int extractData::correlateAllSSM(int cordist,int delta){
     fill(chan,data[j].chanrel,pos-data[j].position);
     j--;
    }
+  */
  }
  return 0;
 }
@@ -724,6 +742,7 @@ float extractData::chi2(int delta,int* delay){
  return chi;
 }
 //------------------------------------------------------------------
+// To be used with correlationst agains 0BPX
 int extractData::calculateMask(int* mask){
   unsigned int j=0;
   while(j < inputs.size() && (inputs.at(j)).name.find("0BPA") == string::npos)j++;
@@ -837,6 +856,7 @@ int extractData::checkDelaysOrb(int delta){
  return 0;
 }
 //------------------------------------------------------------------
+// chi2 everybody with everybody
 // delta here and checkallSSM can be different
 int extractData::checkDelaysCor(int delta){
  // normalise
@@ -847,11 +867,11 @@ int extractData::checkDelaysCor(int delta){
    norm[i]=sum;
    cout << i << " norm " << norm[i] << endl;
  }
- norcorrs = new float*[ncorrelations];
- varcorrs = new float*[ncorrelations];
+ norcorrs = new double*[ncorrelations];
+ varcorrs = new double*[ncorrelations];
  for(int i=0;i<ncorrelations;i++){
-   norcorrs[i]=new float[2*delta_d+1];
-   varcorrs[i]=new float[2*delta_d+1];
+   norcorrs[i]=new double[2*delta_d+1];
+   varcorrs[i]=new double[2*delta_d+1];
    for(int j=0;j<2*delta_d+1;j++){
       if(norm[i]){
         norcorrs[i][j]= (float) correlations[i][j]/norm[i];
@@ -898,8 +918,105 @@ int extractData::checkDelaysCor(int delta){
  }
  return 0;
 }
+//------------------------------------------------------------------
+// create array of pointers in the form d = cT V^-1 c
+// c= correlations against e.g. TVX =(TVXAxVBA, TVXAxVBC)
+// V=(vbaxvba,vbaxvbc,vbaxvba,vbcxvbx)
+double extractData::calculateCorCoef(int delta,int* delay)
+{
+ // C vector
+ int l = 1;
+ for(int i=1;i<ninputs;i++){
+    //int n = l % ninputs;
+    l += 1;
+    l += ((l%ninputs)==0) * (l/ninputs);
+    int del=delta_d-delay[i-1];
+    //cout << "i= " << i << " del= " << del << " l=" << l << " n="<< n <<endl;
+    (*cvec)[i-1]=norcorrs[i][del];
+ }
+ int dim=ninputs-1;
+ int ll=0;
+ for(int i=ninputs;i<ncorrelations;i++){
+        int m = l/ninputs;
+        int n = l % ninputs;
+	int j = ll/dim;
+        int k = ll % dim;
+        l += 1;
+        l += ((l%ninputs)==0) * (l/ninputs);
+        ll += 1;
+        ll += ((ll%dim)==0) * (ll/dim);
+        //cout << "m,n,k " << inputNames[m] << " " << inputNames[n] << " " << i  << endl;
+        int del=delta_d+delay[m-1]-delay[n-1];
+        //cout << "delta= " << del << " d[m]= " << delay[m-1] << " d[n]=" << delay[n-1] << endl;
+	//cout << "m= " << m << " n=" << n << " del= " << del << " j= " << j << " k= " << k << endl;
+	(*var)[j][k]=norcorrs[i][del];
+	(*var)[k][j]=norcorrs[i][del];
+ }
+ TDecompSVD svd(*var);
+ //svd.SetTol(svd.GetTol()/1000.);
+ //cout << "Tolerance: " << svd.GetTol() << endl;
+ bool status;
+ TMatrixD inv=svd.Invert(status);
+ //inv.Print();
+ //printcvec();
+ //printvar();
+ if(status==0){
+   return DBL_MAX; 
+ }
+ else{
+   TVectorD vartimecvec(*cvec);
+   vartimecvec *= inv;
+   double dd= (*cvec)*vartimecvec;
+   hCorCoef->Fill(dd);
+   return dd;
+ }
+}
+//---------------------------------------------------------------
+void extractData::printcvec()
+{
+ cout << "CVEC:";
+ for(int i=0;i<ninputs-1;i++)cout << " " << (*cvec)[i];
+ cout << endl;
+}
+//-----------------------------------------------------------------
+void extractData::printvar()
+{
+ for(int i=0;i<ninputs-1;i++){
+    for(int j=0;j<ninputs-1;j++){
+       cout << (*var)[i][j] << " ";
+    }
+    cout << endl;
+ }
+}
+//------------------------------------------------------------------
+// Normalisation to proper correlations with sigmas in denominator
+void extractData::normaliseCor()
+{
+ norcorrs = new double*[ncorrelations];
+ for(int i=0;i<ncorrelations;i++)norcorrs[i]=new double[2*delta_d+1];
+ cout << "norcorrs created with size: " << 2*delta_d+1 << endl;
+ for(int i=0;i<ninputs;i++){
+  for(int j=i;j<ninputs;j++){
+    int k=(2*ninputs-i-1)*i/2+j;
+    for(int l=0;l<2*delta_d+1;l++){
+     float m1=chans[inp2chan[i]];
+     float m2=chans[inp2chan[j]];
+     float N=nssms*Mega;
+     float cor=correlations[k][l]-m1*m2/N;
+     cor=cor/TMath::Sqrt(m1*(1-m1/N)*m2*(1-m2/N));
+     norcorrs[k][l]=cor;
+    }
+    if(i==j){ //symmetrise cor
+      for(int l=0;l<delta_d;l++){
+         norcorrs[k][2*delta_d-l]=norcorrs[k][l];
+      }
+    }
+  }  
+ }
+}
 //-------------------------------------------------------------------
 void extractData::printCorrelations(){
+ normaliseCor();
  for(int i=0;i<ninputs;i++){
   for(int j=i;j<ninputs;j++){
     std::stringstream ss;
@@ -910,17 +1027,13 @@ void extractData::printCorrelations(){
     int k=(2*ninputs-i-1)*i/2+j;
     cout << name << ":";
     cout << i << "x" << j << ": ";
-    //int peak=0,offpeak=0;
     for(int l=0;l<2*delta_d+1;l++){
-     float m1=chans[inp2chan[i]];
-     float m2=chans[inp2chan[j]];
-     float N=nssms*Mega;
-     float cor=correlations[k][l]-m1*m1/N;
-     cor=cor/TMath::Sqrt(m1*(1-m1/N)*m2*(1-m2/N));
-     fillHist(k,l+1,correlations[k][l]);
+     //fillHist(k,l+1,correlations[k][l]);
      //fillHist(k,l+1,cor);
+     fillHist(k,l+1,norcorrs[k][l]);
+     //cout << norcorrs[k][l] << " ";
     }
-    //cout << peak << " off: "<< offpeak << endl;
+    //cout << endl;
   }
  }
 }

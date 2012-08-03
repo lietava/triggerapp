@@ -3,7 +3,9 @@
 #include <iostream>
 #include <fstream>
 #include "TFile.h"
+#include "TH1F.h"
 #include "TObjArray.h"
+#include "TVectorD.h"
 typedef unsigned int w32;
 using namespace std;
 
@@ -13,6 +15,7 @@ class Hists
          TObjArray hists;  // correlations
          TObjArray hists2; // length and orbit
  public:
+         TH1F *hCorCoef;
          Hists();
 	 ~Hists();
          int addHist(string const &name,int delta,int cordist);
@@ -40,7 +43,7 @@ class Input
          int delay,index,level;
          int counts;
          int channel;
-         bool used;
+         int used;
          Input(string& name,int delay,int index);
          Input(string& name,int delay,int index,int level);
 	 void SetCounts(int cnt){counts=cnt;};
@@ -65,7 +68,11 @@ class extractData : public Hists
 	float chi2(int delta,int *delay1);
         int calculateMask(int* mask);
 	int findInput(string& nameChosen, int& input);
+	void normaliseCor();
+	double calculateCorCoef(int delta,int* delay);
 	void openRepFile();
+	void printvar();
+	void printcvec();
         vector<string> filelist;
         vector<string> ssmdumps;
         vector<ssmpoint> data;
@@ -87,8 +94,8 @@ class extractData : public Hists
 	int chanbpa,chanpbc;  // channels of bpa,bpc
         int *(*correlations); // direct correlations between inputs
         float *(*correlaorbit); // correlations of 2 inputs's distance to orbit
-        float *(*norcorrs);  // normalised correlationa
-        float *(*varcorrs);  // variance of  correlationa
+        double *(*norcorrs);  // normalised correlationa
+        double *(*varcorrs);  // variance of  correlationa
         int *(*orbit);       // distance to orbit 
         float *(*nororbit);  // normalised distance to orbit
         float *(*varorbit);  // normalised distance to orbit
@@ -99,6 +106,8 @@ class extractData : public Hists
         int *chans;        // # of signal
         int *chansd;       // # of signals closer than xxx
         int SkipNext;   // number of BCs to skip after first detected
+	TVectorD *cvec;  // correlations to chosen
+        TMatrixD *var;   // variance of unchosen
  public:
         //extractData(string const &FileList,string const &DataDir);
         extractData(char* config);
@@ -111,6 +120,7 @@ class extractData : public Hists
         void extractAllSSM();
         void checkAllSSM1by1();
         int correlateAllSSM(int cordist,int delta);
+	int correlate2OneAll(int cordist,int delta);
 	int correlate2One(int cordist,int delta, string nameChosen);
 	int correlate2One(int cordist,int delta){return correlate2One(cordist,delta,input2correlate_d);};
  	int correlate2Orbit(int cordist,int delta,string nameChosen);
