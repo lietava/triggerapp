@@ -1,0 +1,14 @@
+# Use VALID.CTPINPUTS in the same directory as your snapshot dumps
+/home/alice/trigger/SMAQ/testb/VALID.CTPINPUTS
+# directory with snaphot dumps
+/home/alice/trigger/SMAQ/testb/
+# name of the file with list of snapshot files
+files.txt
+# list of inputs
+0SH2 0SH4 0PH0 0HWU
+# Supression of trains: 0=no supression
+0
+# number of files to analyse; 0=all files in list
+0
+# distance to orbit window: FROM SIZE, so for 0 3564 full orbit will be displayed
+0 3564

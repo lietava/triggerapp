@@ -30,7 +30,8 @@ void splitstring(const string& str,
 }
 //-------------------------------------------------------
 Hists::Hists(){
-  hCorCoef = new TH1F("hCorCoef", "Multi Correlation coeficients",10000,0.,1.);
+//  hCorCoef = new TH1F("hCorCoef", "Multi Correlation coeficients",10000,0.,1.);
+  hCorCoef = new TH2F("hCorCoef", "Multi Correlation coeficients",10000,0.,1.,30,0.,30.);
 }
 Hists::~Hists(){
   delete hCorCoef;
@@ -593,6 +594,7 @@ int extractData::distance2Orbit(){
 // Multiple correlation coefficient analysis
 int extractData::correlate2OneAll(int cordist,int delta)
 {
+ repFile << "Correlations to input: " << input2correlate_d << endl;
  // create TVectors
  cvec = new TVectorD(ninputs-1);
  var = new TMatrixD(ninputs-1,ninputs-1);
@@ -614,13 +616,13 @@ int extractData::correlate2OneAll(int cordist,int delta)
  int npow=1;
  int delaymax[ninputs];
  for(int i=0;i<ninputs-1;i++)npow=npow*(2*delta+1);
- double ddmax=DBL_MIN,dd=DBL_MIN;
- cout << "DELAYS:" << endl;
+ double ddmax=DBL_MIN,dd=DBL_MIN,distmin=DBL_MAX;
+ //cout << "DELAYS:" << endl;
  for(int i=0;i<npow;i++){
    int delay[ninputs];
    delay[ninputs-1]=0;
    int num=i;
-   int numlessdigit; 
+   int numlessdigit; // This is based on idea that i is number in (2*delta+1) base 
    for(int j=0;j<ninputs-1;j++){
       numlessdigit=num/(2*delta+1);
       delay[j]=num-numlessdigit*(2*delta+1)-delta;
@@ -629,12 +631,25 @@ int extractData::correlate2OneAll(int cordist,int delta)
    }
    //cout << endl;
    dd=calculateCorCoef(delta,delay);  // Chosen inputs has to be first/
+   double dist=0;
+   for(int i=0;i<ninputs-1;i++)dist+=TMath::Abs(delay[i]);
+   hCorCoef->Fill(dd,dist);
    if(dd>ddmax){ 
      ddmax=dd;
+     distmin=dist;
      for(int j=0;j<ninputs-1;j++)delaymax[j]=delay[j];
+   }else if(dd==ddmax){
+     if(distmin>dist){
+       distmin=dist;
+       for(int j=0;j<ninputs-1;j++)delaymax[j]=delay[j];      
+     }
    }
    //cout << "dd= "<< dd << " ddmax= " << ddmax << endl;
  }
+ if(distmin) 
+    repFile << "\033[1;32m>>> " <<" MAX="<< distmin  << "\033[0m\n" << endl;
+ else
+    repFile << " MAX= " << distmin << endl;
  cout << "ddmax= " << ddmax << " delays: ";
  for(int j=0;j<ninputs-1;j++)cout << delaymax[j] << " ";
  cout << endl; 
@@ -957,9 +972,14 @@ double extractData::calculateCorCoef(int delta,int* delay)
  //cout << "Tolerance: " << svd.GetTol() << endl;
  bool status;
  TMatrixD inv=svd.Invert(status);
+ // Unit matrix=just scalar product
+ //TMatrixD inv(*var);
+ //inv.UnitMatrix();
  //inv.Print();
  //printcvec();
  //printvar();
+ //(*var).Print();
+ //(*cvec).Print();
  if(status==0){
    return DBL_MAX; 
  }
@@ -967,7 +987,6 @@ double extractData::calculateCorCoef(int delta,int* delay)
    TVectorD vartimecvec(*cvec);
    vartimecvec *= inv;
    double dd= (*cvec)*vartimecvec;
-   hCorCoef->Fill(dd);
    return dd;
  }
 }
