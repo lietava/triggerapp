@@ -23,7 +23,7 @@ int main(int argc, char **argv) {
  time.Stop();
  cout << "CPU time after reading data: " << time.CpuTime() << endl;
  time.Start();
- a.removeEmptySSMs(0);
+ if((ret=a.removeEmptySSMs(0))) return ret;
  a.extractAllSSM();
  //a.printData();
  //a.chooseInputs();

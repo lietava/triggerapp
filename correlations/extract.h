@@ -4,6 +4,7 @@
 #include <fstream>
 #include "TFile.h"
 #include "TH1F.h"
+#include "TH2F.h"
 #include "TObjArray.h"
 #include "TVectorD.h"
 typedef unsigned int w32;
@@ -15,7 +16,8 @@ class Hists
          TObjArray hists;  // correlations
          TObjArray hists2; // length and orbit
  public:
-         TH1F *hCorCoef;
+         //TH1F *hCorCoef;
+         TH2F *hCorCoef;
          Hists();
 	 ~Hists();
          int addHist(string const &name,int delta,int cordist);
