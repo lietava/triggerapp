@@ -150,9 +150,10 @@ void DisplaySCAL::DisplayInputs()
     CheckIndex(3,pos,NITEMS);
     dataInp[pos][cpoints]=inps[i]->GetCounter()->GetRate();
  }
- if(ivln<NLHRAT && ivhn<NLHRAT){
+ //if(ivln<NLHRAT && ivhn<NLHRAT){
+ if(ivln<NITEMS && ivhn<NITEMS){
    if(dataInp[ivhn][cpoints])dataInp[NLHRAT][cpoints]=dataInp[ivln][cpoints]/dataInp[ivhn][cpoints];
-   else dataInp[NLHRAT][cpoints]=0;
+   //else dataInp[NLHRAT][cpoints]=0;
  }
  DrawCanvasInps();
  nnpoints++;

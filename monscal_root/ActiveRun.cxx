@@ -304,7 +304,7 @@ int ActiveRun::ProcessCfgLine(const string &line,int& level)
           return 0;
    case 7:  // classes
          {
-         if((nitems < 8) || (nitems >10)){
+	 if((nitems != 8) && (nitems != 10) && (nitems != 11)){
            PrintLog(("Invalid class syntax: "+line).c_str());
           return 1;
          }
