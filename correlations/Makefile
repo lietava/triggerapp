@@ -20,6 +20,9 @@ GLIBS         = $(ROOTGLIBS) $(SYSLIBS)
 extract: main.o extract.o
 	g++ $(LDFLAGS) main.o extract.o $(LIBS) -o extract
 
+orbit: orbit.o extract.o
+	g++ $(LDFLAGS) main.o extract.o $(LIBS) -o extract
+
 extract.o: extract.cc
 	$(CXX) $(CXXFLAGS) -c extract.cc
 main.o: main.cc

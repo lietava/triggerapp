@@ -1,4 +1,5 @@
 #include "extract.h"
+#include <climits> 
 #include <sstream>
 #include "TH2F.h"
 #include "TObjArray.h"
@@ -72,6 +73,7 @@ int Hists::writeHists(){
 }
 void Hists::printAllHists(){
  int n=hists.GetEntriesFast();
+ cout << "printAllHists: # of hists: " << n << endl;
  TCanvas c1("c1","c1",900,20,540,550);
  for(int i=0;i<n;i++){
    hists[i]->Draw(); 
@@ -79,6 +81,19 @@ void Hists::printAllHists(){
    string ext(".pdf");
    string pdf("pdf/");
    string file(pdf+hists[i]->GetName()+ext);
+   c1.SaveAs(file.c_str());
+ }
+}
+void Hists::printAllHists2(){
+ int n=hists2.GetEntriesFast();
+ cout << "printAllHists2: # of hists: " << n << endl;
+ TCanvas c1("c1","c1",900,20,540,550);
+ for(int i=0;i<n;i++){
+   hists2[i]->Draw(); 
+   cout << (hists2[i])->GetName() << " saved" << endl;
+   string ext(".pdf");
+   string pdf("pdf/");
+   string file(pdf+hists2[i]->GetName()+ext);
    c1.SaveAs(file.c_str());
  }
 }
@@ -355,6 +370,7 @@ int extractData::extract1SSMfilt1(int issm){
       data.push_back(p);
       del[j]=SkipNext;
       chans[j]++;
+      //cout << " adding to " << file << endl;
     }
    }
   }
@@ -405,7 +421,9 @@ int extractData::readFileList(){
       if (!in.good()) break;
       //cout << line << endl;
       if(line[0]=='#') continue;
-      if(line.find(".dmp") == string::npos) continue;
+      bool dump = (line.find(".dmp") == string::npos);
+      dump *= (line.find(".dump") == string::npos);
+      if(dump) continue;
       filelist.push_back(line); 
       nlines_d++;
       if(nfiles && nlines_d>=nfiles)break;
@@ -413,7 +431,7 @@ int extractData::readFileList(){
    in.close();
    cout << " # found  lines " << nlines_d << endl;
    printFileList();
-   cout << " # found  lines " << nlines_d << endl;
+   cout << " # files read ok: " << nlines_d << endl;
    return 0;
 }
 //--------------------------------------------------------------
@@ -581,9 +599,12 @@ int extractData::distance2Orbit(){
         ((pos - orbits[j].position - dcordist_d) > 0) &&
         ((pos - orbits[j].position - dcordist_d) < ddelta_d))
      {
-     //cout << delta << " " << ((pos - orbits[j].position - cordist) < delta) << endl;
-     //cout << i << " chan=" << chan << " " << pos- orbits[j].position - cordist << endl;
-     orbit[chan][pos- orbits[j].position - dcordist_d]++;
+      //cout << delta << " " << ((pos - orbits[j].position - cordist) < delta) << endl;
+      //cout << i << " chan=" << chan << " " << pos- orbits[j].position - cordist << endl;
+      int iorb=pos- orbits[j].position - dcordist_d;
+      orbit[chan][iorb]++;
+      a->addOrbit(iorb);
+      break;
      }
     j++;
    }
@@ -967,6 +988,7 @@ double extractData::calculateCorCoef(int delta,int* delay)
 	(*var)[j][k]=norcorrs[i][del];
 	(*var)[k][j]=norcorrs[i][del];
  }
+ /*
  TDecompSVD svd(*var);
  //svd.SetTol(svd.GetTol()/1000.);
  //cout << "Tolerance: " << svd.GetTol() << endl;
@@ -989,6 +1011,8 @@ double extractData::calculateCorCoef(int delta,int* delay)
    double dd= (*cvec)*vartimecvec;
    return dd;
  }
+ */
+ return 0;
 }
 //---------------------------------------------------------------
 void extractData::printcvec()
@@ -1023,7 +1047,8 @@ void extractData::normaliseCor()
      float N=nssms*Mega;
      float cor=correlations[k][l]-m1*m2/N;
      cor=cor/TMath::Sqrt(m1*(1-m1/N)*m2*(1-m2/N));
-     norcorrs[k][l]=cor;
+     //norcorrs[k][l]=cor;
+     norcorrs[k][l]=correlations[k][l];
     }
     if(i==j){ //symmetrise cor
       for(int l=0;l<delta_d;l++){

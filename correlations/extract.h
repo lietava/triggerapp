@@ -15,6 +15,7 @@ class Hists
  private:
          TObjArray hists;  // correlations
          TObjArray hists2; // length and orbit
+         TObjArray hists3; // orbit for given correlations
  public:
          //TH1F *hCorCoef;
          TH2F *hCorCoef;
@@ -26,16 +27,22 @@ class Hists
          int fillHist2(int i,int bin,float x);
          int writeHists();
          void printAllHists();
+         void printAllHists2();
 };
 //---------------------------------
 class ssmpoint
 {
  public:
  int issm,chanabs,chanrel,position;
+ int iorbit; // position wrt to orbit
  ssmpoint(int is,int ch,int chr,int pos):
- issm(is),chanabs(ch),chanrel(chr),position(pos)
+ issm(is),chanabs(ch),chanrel(chr),position(pos),iorbit(0)
+ {};
+ ssmpoint(int is,int ch,int chr,int pos,int iorb):
+ issm(is),chanabs(ch),chanrel(chr),position(pos),iorbit(iorb)
  {};
  void Print();
+ void addOrbit(int iorb){iorbit=iorb;};
 };
 //-------------------------------------------------------
 class Input
