@@ -8,7 +8,7 @@
 #include "TMath.h"
 #define Mega 1024*1024
 typedef unsigned int w32;
-
+#define ORBIT 3564
 //-----------------------------------------------------------------------
 void splitstring(const string& str,
                       vector<string>& tokens,
@@ -50,14 +50,29 @@ int Hists::addHist2(string const &name,int nbins,float x0,float xmax){
  hists2.Add(h);
  return 0;
 }
+int Hists::addHist3(string const &name,int delta){
+ int nbins=delta;
+ float x0=0;
+ float xm=delta+0.5;
+ TH1F *h = new TH1F(name.c_str(),name.c_str(),nbins,x0,xm);
+ hists3.Add(h);
+ return 0;
+}
 int Hists::fillHist(int i,int bin,float x){
  TH1F *h = (TH1F*) hists[i];
  //cout << "i= "<< i << ":" << h->GetName() << endl;
  h->SetBinContent(bin,x);
+ //h->AddBinContent(bin,x);
  return 0;
 }
 int Hists::fillHist2(int i,int bin,float x){
  TH1F *h = (TH1F*) hists2[i];
+ //cout << "i= "<< i << ":" << h->GetName() << endl;
+ h->SetBinContent(bin,x);
+ return 0;
+}
+int Hists::fillHist3(int i,int bin,float x){
+ TH1F *h = (TH1F*) hists3[i];
  //cout << "i= "<< i << ":" << h->GetName() << endl;
  h->SetBinContent(bin,x);
  return 0;
@@ -67,13 +82,14 @@ int Hists::writeHists(){
   file = new TFile("pdf/Histos.root","RECREATE","FILE");
   hists.Write();
   hists2.Write();
+  hists3.Write();
   hCorCoef->Write();
   file->Close();
  return 0;
 }
-void Hists::printAllHists(){
+void Hists::pdfAllHists(){
  int n=hists.GetEntriesFast();
- cout << "printAllHists: # of hists: " << n << endl;
+ cout << "pdfAllHists: # of hists: " << n << endl;
  TCanvas c1("c1","c1",900,20,540,550);
  for(int i=0;i<n;i++){
    hists[i]->Draw(); 
@@ -84,9 +100,9 @@ void Hists::printAllHists(){
    c1.SaveAs(file.c_str());
  }
 }
-void Hists::printAllHists2(){
+void Hists::pdfAllHists2(){
  int n=hists2.GetEntriesFast();
- cout << "printAllHists2: # of hists: " << n << endl;
+ cout << "pdfiAllHists2: # of hists: " << n << endl;
  TCanvas c1("c1","c1",900,20,540,550);
  for(int i=0;i<n;i++){
    hists2[i]->Draw(); 
@@ -370,7 +386,7 @@ int extractData::extract1SSMfilt1(int issm){
       data.push_back(p);
       del[j]=SkipNext;
       chans[j]++;
-      //cout << " adding to " << file << endl;
+      //if(j==10)cout << "j==10 " << file  << file << endl;
     }
    }
   }
@@ -574,13 +590,27 @@ int extractData::fill(int chan1,int chan2,int dist){
  return 0;
 }
 //-----------------------------------------------------------
+// fill also position in orbit. 
+// Since inputs are correlated one orbit position is enough
+int extractData::fill(int chan1,int chan2,int dist,int iorbit){
+ if(chan1>chan2){
+  //return 0; // double counting
+  dist=delta_d-dist;
+  int ch=chan1; chan1=chan2;chan2=ch;
+ } else dist=delta_d+dist;
+ int i=(2*ninputs-chan1-1)*chan1/2+chan2;
+ correlations[i][dist]++;
+ cororbit[i][iorbit]++; 
+ return 0;
+}
+//-----------------------------------------------------------
 int extractData::distance2Orbit(){
  orbit = new int*[ninputs];
- //dcordist_d=cordist;
- //ddelta_d=delta;
+ int delta=ORBIT;
+ int cordist=0;
  for (int i=0;i<ninputs;i++){
-   orbit[i]=new int[ddelta_d];
-   for(int j=0;j<ddelta_d;j++)orbit[i][j]=0;
+   orbit[i]=new int[delta];
+   for(int j=0;j<delta;j++)orbit[i][j]=0;
  }
  int ndata=data.size();
  int norbit=orbits.size();
@@ -596,12 +626,12 @@ int extractData::distance2Orbit(){
      //cout << pos- orbits[j].position -cordist <<  endl;
      if(
         (issm == orbits[j].issm) &&
-        ((pos - orbits[j].position - dcordist_d) > 0) &&
-        ((pos - orbits[j].position - dcordist_d) < ddelta_d))
+        ((pos - orbits[j].position - cordist) > 0) &&
+        ((pos - orbits[j].position - cordist) < delta))
      {
       //cout << delta << " " << ((pos - orbits[j].position - cordist) < delta) << endl;
       //cout << i << " chan=" << chan << " " << pos- orbits[j].position - cordist << endl;
-      int iorb=pos- orbits[j].position - dcordist_d;
+      int iorb=pos- orbits[j].position - cordist;
       orbit[chan][iorb]++;
       a->addOrbit(iorb);
       break;
@@ -680,9 +710,12 @@ int extractData::correlate2OneAll(int cordist,int delta)
 int extractData::correlateAllSSM(int cordist,int delta){
  ncorrelations=ninputs*(ninputs+1)/2;
  correlations = new int*[ncorrelations];
+ cororbit     = new int*[ncorrelations];
  for (int i=0;i<ncorrelations;i++){
    correlations[i]=new int[2*delta+1];
    for(int j=0;j<2*delta+1;j++)correlations[i][j]=0;
+   cororbit[i] = new int[ORBIT];
+   for(int j=0;j<ORBIT;j++)cororbit[i][j]=0;
  }
  delta_d=delta;
  cordist_d=cordist;
@@ -699,7 +732,7 @@ int extractData::correlateAllSSM(int cordist,int delta){
          //(chan <= data[j].chanrel) &&
          (abs(pos - data[j].position - cordist) <= delta)
    ){
-    fill(chan,data[j].chanrel,pos-data[j].position);
+    fill(chan,data[j].chanrel,pos-data[j].position,a->iorbit);
     j++;
    }
    /*
@@ -732,20 +765,6 @@ void extractData::printData(){
      data.end();++i){
      i->Print();
      }
-}
-//---------------------------------------------------------------------
-void extractData::printDistance()
-{
- for(int i=0;i<ninputs;i++){
-  string name(inputNames[i]);
-  cout << name << endl;
-  addHist2(name,ddelta_d,dcordist_d,dcordist_d+ddelta_d);
-  for(int j=0;j<ddelta_d;j++){
-     fillHist2(i,j,orbit[i][j]);
-     //cout << " " << orbit[i][j];
-  }
-  //cout << endl;
- }
 }
 //------------------------------------------------------------------
 float extractData::chi2(int delta,int* delay){
@@ -816,6 +835,7 @@ int extractData::findInput(string& nameChosen, int& input){
 }
 //------------------------------------------------------------------
 // calculate correlations from orbit distance to chosen input
+//  
 int extractData::correlate2Orbit(int cordist,int delta, string nameChosen)
 {
  //ncorrelations=ninputs*(ninputs+1)/2;
@@ -1047,15 +1067,35 @@ void extractData::normaliseCor()
      float N=nssms*Mega;
      float cor=correlations[k][l]-m1*m2/N;
      cor=cor/TMath::Sqrt(m1*(1-m1/N)*m2*(1-m2/N));
-     //norcorrs[k][l]=cor;
-     norcorrs[k][l]=correlations[k][l];
+     norcorrs[k][l]=cor;
+     //norcorrs[k][l]=correlations[k][l];
     }
     if(i==j){ //symmetrise cor
       for(int l=0;l<delta_d;l++){
+         correlations[k][2*delta_d-l]=correlations[k][l];
          norcorrs[k][2*delta_d-l]=norcorrs[k][l];
       }
     }
   }  
+ }
+}
+//---------------------------------------------------------------------
+void extractData::printDistance()
+{
+ int cordist=0;
+ int delta=ORBIT;
+ for(int i=0;i<ninputs;i++){
+  string name(inputNames[i]);
+  cout << name << endl;
+  addHist2(name,delta,cordist,cordist+delta);
+  int sum=0;
+  for(int j=0;j<delta;j++){
+     fillHist2(i,j,orbit[i][j]);
+     sum += orbit[i][j];
+     //cout << " " << orbit[i][j];
+  }
+  entriesHist2(i,sum);
+  //cout << endl;
  }
 }
 //-------------------------------------------------------------------
@@ -1071,15 +1111,42 @@ void extractData::printCorrelations(){
     int k=(2*ninputs-i-1)*i/2+j;
     cout << name << ":";
     cout << i << "x" << j << ": ";
+    int sum=0;
     for(int l=0;l<2*delta_d+1;l++){
-     //fillHist(k,l+1,correlations[k][l]);
-     //fillHist(k,l+1,cor);
-     fillHist(k,l+1,norcorrs[k][l]);
+     fillHist(k,l+1,correlations[k][l]);
+     sum += correlations[k][l];
+     //fillHist(k,l+1,norcorrs[k][l]);
+     //sum += norcorrs[k][l];
      //cout << norcorrs[k][l] << " ";
     }
+    entriesHist(k,sum);
     //cout << endl;
   }
  }
+}
+void extractData::printCorrelationOrbit()
+{
+ for(int i=0;i<ninputs;i++){
+  for(int j=i;j<ninputs;j++){
+    std::stringstream ss;
+    ss <<"ORBIT " <<  i << "x" << j;
+    string name("");
+    name="ORBIT " + inputNames[i]+"x"+inputNames[j];
+    addHist3(name,ORBIT);
+    int k=(2*ninputs-i-1)*i/2+j;
+    cout << name << ":";
+    cout << i << "x" << j << ": ";
+    int sum=0;
+    for(int l=0;l<ORBIT;l++){
+     fillHist3(k,l+1,cororbit[k][l]);
+     sum += cororbit[k][l];
+     //cout << cororbit[k][l] << " ";
+    }
+    entriesHist3(k,sum);
+    //cout << endl;
+  }
+ }
+
 }
 //-------------------------------------------------------------------
 void extractData::printCorrelations2One(string& chname){

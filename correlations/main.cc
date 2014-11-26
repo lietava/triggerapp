@@ -31,22 +31,23 @@ int main(int argc, char **argv) {
  cout << "CPU time for extracting data: " << time.CpuTime() << endl;
  //return 0;
  time.Start();
-//----------------------------------Corr direct
-  //a.correlateAllSSM(0,50);  
-  //a.printCorrelations();
-//-----------------------------------Corr 2 One with cor coef
- //cout << "Correlations2One======================================================================="<<endl;
- ///a.correlate2OneAll(0,8);
- //a.correlate2One(0,5);
 //-----------------------------------Orbit
  cout << "Correlations2Orbit====================================================================="<<endl;
  a.distance2Orbit();// set in config.cfg
  a.printDistance();
  //if((ret=a.normaliseDistance2Orbit())) return ret;
  //a.correlate2Orbit(0,5,"0TVX");
+//----------------------------------Corr direct
+  a.correlateAllSSM(0,150);  
+  a.printCorrelations();
+  a.printCorrelationOrbit();
+//-----------------------------------Corr 2 One with cor coef
+ //cout << "Correlations2One======================================================================="<<endl;
+ ///a.correlate2OneAll(0,8);
+ //a.correlate2One(0,5);
 //----------------------------------Output
- a.printAllHists2();
- a.printAllHists();
+ //a.pdfAllHists2();
+ //a.pdfAllHists();
  a.writeHists();
  time.Stop();
  cout << "CPU time for correlations: " << time.CpuTime() << endl;

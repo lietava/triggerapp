@@ -23,11 +23,16 @@ class Hists
 	 ~Hists();
          int addHist(string const &name,int delta,int cordist);
          int addHist2(string const &name,int nbins,float x0, float xmax);
+         int addHist3(string const &name,int delta);
          int fillHist(int i,int bin,float x);
          int fillHist2(int i,int bin,float x);
+         int fillHist3(int i,int bin,float x);
+   	 void entriesHist(int i,int sum){ ((TH1F*) hists[i])->SetEntries(sum);};
+   	 void entriesHist2(int i,int sum){ ((TH1F*) hists2[i])->SetEntries(sum);};
+   	 void entriesHist3(int i,int sum){ ((TH1F*) hists3[i])->SetEntries(sum);};
          int writeHists();
-         void printAllHists();
-         void printAllHists2();
+         void pdfAllHists();
+         void pdfAllHists2();
 };
 //---------------------------------
 class ssmpoint
@@ -73,6 +78,7 @@ class extractData : public Hists
         int extract1SSMfilt1(int issm);
         int checkSSMforData(int issm);
         int fill(int chan1,int chan2,int dist);
+        int fill(int chan1,int chan2,int dist,int orbit);
         int ParseVALIDCTPINPUTS();
 	float chi2(int delta,int *delay1);
         int calculateMask(int* mask);
@@ -108,6 +114,7 @@ class extractData : public Hists
         int *(*orbit);       // distance to orbit 
         float *(*nororbit);  // normalised distance to orbit
         float *(*varorbit);  // normalised distance to orbit
+        int *(*cororbit);  // distance of corrlation pairs to orbit
         ofstream repFile;
         int const Nchans;  // # of all chanels 24+24+12
         int *chan2inp;     // channel to input
@@ -141,6 +148,7 @@ class extractData : public Hists
         void printFileList();
         void printData();
         void printCorrelations();
+        void printCorrelationOrbit();
 	void printCorrelations2One(string& chname);
         void printDistance();
         void SetSkipNext(int skip){SkipNext=skip;}
