@@ -453,10 +453,13 @@ int extractData::readFileList(){
 //--------------------------------------------------------------
 void extractData::extractAllSSM(){
  //for(int i=0;i<nssms;i++)extract1SSM(i);
- for(int i=0;i<nssms;i++)extract1SSMfilt1(i);
- for(int i=0;i<ninputs;i++){
-    cout << "inp= " << inputNames[i] << " #signals: " << chans[inp2chan[i]]<< endl;
+ for(int i=0;i<nssms;i++){
+    extract1SSMfilt1(i);
+    for(int i=0;i<ninputs;i++){
+       cout << " inp= " << inputNames[i] << " #signals: " << chans[inp2chan[i]];
     }
+    cout << endl;
+ }
  /*
  Attempt to remove empty inputs - not finished
  for(unsigned int i=0;i<inputs.size();i++){

@@ -38,7 +38,8 @@ int main(int argc, char **argv) {
  //if((ret=a.normaliseDistance2Orbit())) return ret;
  //a.correlate2Orbit(0,5,"0TVX");
 //----------------------------------Corr direct
-  a.correlateAllSSM(0,150);  
+  //a.correlateAllSSM(0,2*3564);  
+  a.correlateAllSSM(0,50);  
   a.printCorrelations();
   a.printCorrelationOrbit();
 //-----------------------------------Corr 2 One with cor coef
