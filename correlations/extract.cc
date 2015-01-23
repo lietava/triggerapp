@@ -229,6 +229,7 @@ int extractData::ReadConfig(char* config)
         cout << "# of files: " << nfiles << endl;
         nlines++;
       }else if(nlines==6){
+         // correlation distance and center
          vector<string> items;
          splitstring(line,items," ");
          if(items.size() != 2){
@@ -236,11 +237,12 @@ int extractData::ReadConfig(char* config)
           cout << line << endl;
           return 1;
          }
-         dcordist_d=atoi(items[0].c_str());
-         ddelta_d=atoi(items[1].c_str());
-         cout << "config.txt: FROM SIZE " << dcordist_d << " " << ddelta_d << endl;
+         ccordist_d=atoi(items[0].c_str());
+         cdelta_d=atoi(items[1].c_str());
+         cout << "config.txt: FROM SIZE " << ccordist_d << " " << ddelta_d << endl;
          nlines++;
       }else if(nlines==7){
+         // chose input to correlate to
          input2correlate_d=line;
          unsigned int j=0;
          while(j < inputs.size() && (inputs.at(j)).name.find(line) == string::npos)j++;
@@ -720,8 +722,14 @@ int extractData::correlateAllSSM(int cordist,int delta){
    cororbit[i] = new int[ORBIT];
    for(int j=0;j<ORBIT;j++)cororbit[i][j]=0;
  }
- delta_d=delta;
- cordist_d=cordist;
+ if(delta==0){
+  // use config values
+  delta_d=cdelta_d;
+  cordist_d=ccordist_d; 
+ }else{
+  delta_d=delta;
+  cordist_d=cordist;
+ }
  int ndata=data.size();
  cout << "# of data points= " << ndata << endl;
  for(int i=0;i < ndata; i++){

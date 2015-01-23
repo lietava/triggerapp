@@ -101,7 +101,7 @@ class extractData : public Hists
         string VALIDCTPINPUTS_d;
 	string input2correlate_d;
         int cordist_d,delta_d;
-        int dcordist_d,ddelta_d;
+        int ccordist_d,cdelta_d; // config values
         int nfiles;        // if < nlines only nfiles are read
         int nlines_d;      // # of lines in file list = # files (filelist)
         int nssms;         // # of non empty ssms= at least 2 signals (ssmsumps)

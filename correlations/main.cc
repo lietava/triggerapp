@@ -39,7 +39,7 @@ int main(int argc, char **argv) {
  //a.correlate2Orbit(0,5,"0TVX");
 //----------------------------------Corr direct
   //a.correlateAllSSM(0,2*3564);  
-  a.correlateAllSSM(0,50);  
+  a.correlateAllSSM(0,0);  // 0,0=use config values
   a.printCorrelations();
   a.printCorrelationOrbit();
 //-----------------------------------Corr 2 One with cor coef
