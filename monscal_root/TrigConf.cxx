@@ -1,6 +1,7 @@
 #include "TrigConf.h"
 #include <iostream>
 #include <stdlib.h>
+#include <string.h>
 #include "ctpcounters.h"
 
 #define NWIDE 133
@@ -25,13 +26,13 @@ void splitstring(const string& str,
     }
 }
 /////////////////////////////////////////////////////////////////////
-InteractionwCount::InteractionwCount():
-fname1(""),fname2("")
-{
- Int1.SetName("INT1");
- Int1.SetIXs(CSTART_L0+92,CSTART_L0+13);
- Int2.SetName("INT2");
- Int2.SetIXs(CSTART_L0+93,CSTART_L0+13);
+InteractionwCount::InteractionwCount()
+{/* run1:
+ Int1.SetName("INT1"); Int1.SetIXs(CSTART_L0+92,CSTART_L0+13);
+ Int2.SetName("INT2"); Int2.SetIXs(CSTART_L0+93,CSTART_L0+13); */
+ // run2:
+ Int1.SetName("INT1"); Int1.SetIXs(CSTART_L0+173,CSTART_L0+15);
+ Int2.SetName("INT2"); Int2.SetIXs(CSTART_L0+174,CSTART_L0+15);
 }
 void InteractionwCount::Update(w32* buffer)
 {
@@ -40,11 +41,11 @@ void InteractionwCount::Update(w32* buffer)
 }
 void InteractionwCount::DisplayInt1(char* text)
 {
-  sprintf(text,"IR1 -- %10u %20llu %12.3f %12.3f",Int1.GetCount(),Int1.GetCountTot(),Int1.GetRate(),Int1.GetRateA());
+  sprintf(text,"INT1 -- %10u %20llu %12.3f %12.3f",Int1.GetCount(),Int1.GetCountTot(),Int1.GetRate(),Int1.GetRateA());
 }
 void InteractionwCount::DisplayInt2(char* text)
 {
-  sprintf(text,"IR2 -- %10u %20llu %12.3f %12.3f",Int2.GetCount(),Int2.GetCountTot(),Int2.GetRate(),Int2.GetRateA());
+  sprintf(text,"INT2 -- %10u %20llu %12.3f %12.3f",Int2.GetCount(),Int2.GetCountTot(),Int2.GetRate(),Int2.GetRateA());
 }
 ////////////////////////////////////////////////////////////////////
 TrigTimeCounters::TrigTimeCounters()
@@ -55,12 +56,14 @@ Orbit(),
 PeriodCounter(0)
 {
  // time indexes taken from L0, not used, can be used for consistency check
- TimeSec.SetName("TimeSec");
- TimeSec.SetIXs(CSTART_SPEC,CSTART_L0+13);
- TimeUsec.SetName("TimeUsec");
- TimeUsec.SetIXs(CSTART_SPEC+1,CSTART_L0+13);
- Orbit.SetName("Orbit");
- Orbit.SetIXs(CSTART_SPEC+2,CSTART_L2+5);
+ /* run1:
+ TimeSec.SetName("TimeSec"); TimeSec.SetIXs(CSTART_SPEC,CSTART_L0+13);
+ TimeUsec.SetName("TimeUsec"); TimeUsec.SetIXs(CSTART_SPEC+1,CSTART_L0+13);
+ Orbit.SetName("Orbit"); Orbit.SetIXs(CSTART_SPEC+2,CSTART_L2+5); */
+ //run2
+ TimeSec.SetName("TimeSec"); TimeSec.SetIXs(CSTART_SPEC,CSTART_L0+15);
+ TimeUsec.SetName("TimeUsec"); TimeUsec.SetIXs(CSTART_SPEC+1,CSTART_L0+15);
+ Orbit.SetName("Orbit"); Orbit.SetIXs(CSTART_SPEC+2,CSTART_L2+5);
 }
 void TrigTimeCounters::Update(w32* buffer)
 {
@@ -68,7 +71,27 @@ void TrigTimeCounters::Update(w32* buffer)
  TimeUsec.Update(buffer);
  //bool first=Orbit.GetFirst(); should be ok since before=0
  Orbit.Update(buffer);
- if(Orbit.GetBefore() > Orbit.GetNow())PeriodCounter++;
+ bool orbit = Orbit.GetBefore() <= Orbit.GetNow();
+ bool secsl = (TimeSec.GetBefore() < TimeSec.GetNow());
+ bool secse = (TimeSec.GetBefore() ==  TimeSec.GetNow());
+ bool usecs = (TimeUsec.GetBefore() <= TimeUsec.GetNow());
+ if(secsl || (secse && usecs)){ 
+    if(orbit) return; // everything ok
+    else{             // period counter overflow
+      PeriodCounter++;
+      cout <<  "TrigTimeCounters::Update: Period counter updated: " << PeriodCounter << " " << TimeSec.GetNow() << " " << TimeUsec.GetNow() << endl;
+    }
+ }else{              // unexpected orderr
+   cout << "TrigTimeCounters::Update: unexpected order of readings ";
+   cout << TimeSec.GetBefore() << " " << TimeUsec.GetBefore() << " ";
+   cout << TimeSec.GetNow() << " " << TimeUsec.GetNow() << " ";
+   cout <<  endl;
+   if(!orbit) return;
+   else{
+      PeriodCounter++;
+      cout <<  "TrigTimeCounters::Update: Period counter updated: " << PeriodCounter << " " << TimeSec.GetNow() << " " << TimeUsec.GetNow() << endl;
+   }
+ }
 }
 ////////////////////////////////////////////////////////////////////
 TriggerInput::TriggerInput(string &name,int level,int position,string &detname)
@@ -78,13 +101,21 @@ TriggerInput::TriggerInput(string &name,int level,int position,string &detname)
  fposition=position;
  fdetname=detname;
 }
+TriggerInput::TriggerInput(string &name,int level,int position,int iswitch,string &detname)
+{
+ fname=name;
+ flevel=level;
+ fposition=position;
+ fswitchN=iswitch;
+ fdetname=detname;
+}
 void TriggerInput::Print()
 {
  cout << fname << " L" <<flevel << " CTP: "<< fposition << " "   << fdetname << endl;  
 }
 //---------------------------------------------------------------------------
-TriggerInputwCount::TriggerInputwCount(string &name,int level,int position,string &detname)
-:TriggerInput(name,level,position,detname)
+TriggerInputwCount::TriggerInputwCount(string &name,int level,int position,int iswitch,string &detname)
+:TriggerInput(name,level,position,iswitch,detname)
 {
  cnt.SetName(name);
  if(detname.find("SPD") != string::npos){
@@ -92,9 +123,14 @@ TriggerInputwCount::TriggerInputwCount(string &name,int level,int position,strin
   cout << "TriggerInputwCount: factor set to 4 for input " << name << endl;
  }
  cnt.SetName(name);
+ /* run1:
  if(GetLevel()==0)cnt.SetIXs(CSTART_L0+65+GetPosition(),CSTART_L0+13);
  else if(GetLevel()==1)cnt.SetIXs(CSTART_L1+5+GetPosition(),CSTART_L1+5);
- else if(GetLevel()==2) cnt.SetIXs(CSTART_L2+5+GetPosition(),CSTART_L2+5);
+ else if(GetLevel()==2) cnt.SetIXs(CSTART_L2+5+GetPosition(),CSTART_L2+5); */
+ // run2:
+ if(GetLevel()==0)cnt.SetIXs(CSTART_L0+118+GetSwitchN(),CSTART_L0+15);
+ else if(GetLevel()==1)cnt.SetIXs(CSTART_L1+5+GetSwitchN(),CSTART_L1+5);
+ else if(GetLevel()==2) cnt.SetIXs(CSTART_L2+5+GetSwitchN(),CSTART_L2+5);
  else{
    cout << "TrigInput level:" << GetLevel() << endl; 
    Print();
@@ -153,14 +189,25 @@ DetectorwCount::DetectorwCount(const Detector& det)
 :
 Detector(det)
 {
- l2a.SetName("FOL2a");
- l2a.SetIXs(CSTART_FO+NCOUNTERS_FO*(fo-1)+44+(focon-1),CSTART_FO+ NCOUNTERS_FO*(fo-1));
+ /* run1:
+ l2s.SetName("FOL2s");
+ l2s.SetIXs(CSTART_FO+NCOUNTERS_FO*(fo-1)+44+(focon-1),CSTART_FO+ NCOUNTERS_FO*(fo-1));
+ l2r.SetName("FOL2r");
+ pp.SetIXs(CSTART_BUSY+NCOUNTERS_BUSY_L2RS+4*(fo-1)+(focon-1),CSTART_FO+ NCOUNTERS_FO*(fo-1));
  pp.SetName("FOPP"); 
- pp.SetIXs(CSTART_FO+NCOUNTERS_FO*(fo-1)+32+(focon-1),CSTART_FO+ NCOUNTERS_FO*(fo-1));
+ pp.SetIXs(CSTART_FO+NCOUNTERS_FO*(fo-1)+32+(focon-1),CSTART_FO+ NCOUNTERS_FO*(fo-1)); */
+ // run2:
+ l2s.SetName("FOL2s");
+ l2s.SetIXs(CSTART_FO+NCOUNTERS_FO*(fo-1)+55+(focon-1),CSTART_FO+ NCOUNTERS_FO*(fo-1));
+ l2r.SetName("FOL2r");
+ pp.SetIXs(CSTART_FO+NCOUNTERS_FO*(fo-1)+59+(focon-1),CSTART_FO+ NCOUNTERS_FO*(fo-1));
+ pp.SetName("FOPP"); 
+ pp.SetIXs(CSTART_FO+NCOUNTERS_FO*(fo-1)+43+(focon-1),CSTART_FO+ NCOUNTERS_FO*(fo-1));
 }
 void DetectorwCount::Update(w32* buffer)
 {
- l2a.Update(buffer);
+ l2s.Update(buffer);
+ l2r.Update(buffer);
  pp.Update(buffer);
 }
 ////////////////////////////////////////////////////////////////////
@@ -211,12 +258,15 @@ TriggerClusterwCount::TriggerClusterwCount(string &name,int hwindex)
  nclass=0;
  for(int i=0;i<NCLASS;i++)fTClasses[i]=0;
  int index=GetIndex();
- l0.SetName("L0after");
- l0.SetIXs(CSTART_L0+152+index,CSTART_L0+13);
- busy.SetName("BUSY");
- busy.SetIXs(CSTART_L0+0+index,CSTART_L0+13);
- l2.SetName("L2after");
- l2.SetIXs(CSTART_L2+127+index,CSTART_L2+5); 
+ /* run1:  152: points to l0clstT,1,2,..,6
+ l0.SetName("L0after"); l0.SetIXs(CSTART_L0+152+index,CSTART_L0+13);
+ busy.SetName("BUSY"); busy.SetIXs(CSTART_L0+0+index,CSTART_L0+13);
+ l2.SetName("L2after"); l2.SetIXs(CSTART_L2+127+index,CSTART_L2+5); */
+ // run2:  289: points to l0clstT,1,2,..,8
+ l0.SetName("L0after"); l0.SetIXs(CSTART_L0+289+index,CSTART_L0+15);
+ busy.SetName("BUSY"); busy.SetIXs(CSTART_L0+0+index,CSTART_L0+15);
+ //l2.SetName("L2after"); l2.SetIXs(CSTART_L2+447+index,CSTART_L2+5); bug 
+ l2.SetName("L2after"); l2.SetIXs(CSTART_L2+225+2+index,CSTART_L2+5); 
 }
 TriggerClusterwCount::~TriggerClusterwCount()
 {
@@ -241,6 +291,34 @@ void TriggerClusterwCount::DisplayCluster(ofstream *file)
 {
  DisplayClusterHeader(file);
  for(int i=0; i<nclass;i++)fTClasses[i]->DisplayClass(file);
+ DisplayClusterTotal(file);
+}
+void TriggerClusterwCount::DisplayClusterSortBCM(ofstream *file)
+// sort classes acoording to BC mask
+{
+ TriggerClasswCount* clssorted[nclass];
+ bcmtype bcm;
+ clssorted[0]=fTClasses[0];
+ if(nclass>1){  
+   bcm =fTClasses[1]->GetBCMtype();
+   clssorted[1]=fTClasses[1];   
+   if(bcm<fTClasses[0]->GetBCMtype()){
+     clssorted[0]=fTClasses[1];  
+     clssorted[1]=fTClasses[0];  
+   }
+   for(int i=2; i<nclass;i++){
+     bcm=fTClasses[i]->GetBCMtype();
+     //cout <<fTClasses[i]->GetName() << " " << i << " " <<bcm << endl;
+     int j=i;
+     while(j>0 && (bcm < clssorted[j-1]->GetBCMtype()))j--;
+     for(int k=i;k>j;k--)clssorted[k]=clssorted[k-1];
+     clssorted[j]=fTClasses[i];
+   }
+ }
+ //cout << "SORTED:" << endl;
+ //for(int i=0; i<nclass;i++)cout << clssorted[i]->GetName() << " " << fTClasses[i]->GetName() << endl;
+ DisplayClusterHeader(file);
+ for(int i=0; i<nclass;i++)clssorted[i]->DisplayClass(file);
  DisplayClusterTotal(file);
 }
 void TriggerClusterwCount::DisplayClusterHeader(ofstream* file)
@@ -285,23 +363,43 @@ void TriggerClass::Print()
  //cout << " " << fCluster <<  endl;
  printf("%s Index= %i %s %p \n",fname.c_str(),fIndex,fCluster->GetName().c_str(),fCluster);
 }
+void TriggerClass::ParseClassName()
+{
+ vector<string> items;
+ splitstring(fname,items,"-");
+ // Descriptor part of name
+ fnamedesc=items[0];
+ // BC mask type
+ char bcm1stchar=items[1][0];
+ if(bcm1stchar == 'B') BCMtype=B; 
+ else if(bcm1stchar == 'A') BCMtype=A;
+ else if(bcm1stchar == 'C') BCMtype=C;
+ else if(bcm1stchar == 'E') BCMtype=E;
+ else if(bcm1stchar == 'S') BCMtype=S;
+ else{
+    cout << "Unknown BCM mask in class: " << fname << endl;
+    BCMtype=U;
+ }
+ //cout << "TriggerClass BCMtype= " << BCMtype << endl;
+}
 //--------------------------------------------------------------------------
 TriggerClasswCount::TriggerClasswCount(string &name,w8 index, TriggerCluster *cluster)
 :TriggerClass(name,index,cluster),
 fGroup(0),fTime(0)
-{
- cnts[0].SetName("L0before");
- cnts[0].SetIXs(CSTART_L0+15+GetIndex(),CSTART_L0+13);
- cnts[1].SetName("L0after");
- cnts[1].SetIXs(CSTART_L0+99+GetIndex(),CSTART_L1+13);
- cnts[2].SetName("L1before");
- cnts[2].SetIXs(CSTART_L1+39+GetIndex(),CSTART_L1+ 5);
- cnts[3].SetName("L1after");
- cnts[3].SetIXs(CSTART_L1+89+GetIndex(),CSTART_L1+ 5);
- cnts[4].SetName("L2before");
- cnts[4].SetIXs(CSTART_L2+25+GetIndex(),CSTART_L2+ 5);
- cnts[5].SetName("L2after");
- cnts[5].SetIXs(CSTART_L2+75+GetIndex(),CSTART_L2+ 5);
+{/* run1:
+ cnts[0].SetName("L0before"); cnts[0].SetIXs(CSTART_L0+15+GetIndex(),CSTART_L0+13);
+ cnts[1].SetName("L0after"); cnts[1].SetIXs(CSTART_L0+99+GetIndex(),CSTART_L1+13);
+ cnts[2].SetName("L1before"); cnts[2].SetIXs(CSTART_L1+39+GetIndex(),CSTART_L1+ 5);
+ cnts[3].SetName("L1after"); cnts[3].SetIXs(CSTART_L1+89+GetIndex(),CSTART_L1+ 5);
+ cnts[4].SetName("L2before"); cnts[4].SetIXs(CSTART_L2+25+GetIndex(),CSTART_L2+ 5);
+ cnts[5].SetName("L2after"); cnts[5].SetIXs(CSTART_L2+75+GetIndex(),CSTART_L2+ 5); */
+ // run2:
+ cnts[0].SetName("L0before"); cnts[0].SetIXs(CSTART_L0+18+GetIndex(),CSTART_L0+15);
+ cnts[1].SetName("L0after"); cnts[1].SetIXs(CSTART_L0+186+GetIndex(),CSTART_L1+15);
+ cnts[2].SetName("L1before"); cnts[2].SetIXs(CSTART_L1+39+GetIndex(),CSTART_L1+ 5);
+ cnts[3].SetName("L1after"); cnts[3].SetIXs(CSTART_L1+139+GetIndex(),CSTART_L1+ 5);
+ cnts[4].SetName("L2before"); cnts[4].SetIXs(CSTART_L2+25+GetIndex(),CSTART_L2+ 5);
+ cnts[5].SetName("L2after"); cnts[5].SetIXs(CSTART_L2+125+GetIndex(),CSTART_L2+ 5);
  if(TriggerClass::GetName().at(2)=='S'){
   cout << "TriggerClasswCount: Factor NOT set to 4 for L0B for class " << GetName() << endl;
   //cout << "TriggerClasswCount: Factor set to 4 for L0B for class " << GetName() << endl;
@@ -312,19 +410,20 @@ fGroup(0),fTime(0)
 TriggerClasswCount::TriggerClasswCount(string &name,w8 index, TriggerCluster *cluster,w32 groupname,w32 grouptime)
 :TriggerClass(name,index,cluster),
 fGroup(groupname),fTime(grouptime),isActive(0)
-{
- cnts[0].SetName("L0before");
- cnts[0].SetIXs(CSTART_L0+15+GetIndex(),CSTART_L0+13);
- cnts[1].SetName("L0after");
- cnts[1].SetIXs(CSTART_L0+99+GetIndex(),CSTART_L1+13);
- cnts[2].SetName("L1before");
- cnts[2].SetIXs(CSTART_L1+39+GetIndex(),CSTART_L1+ 5);
- cnts[3].SetName("L1after");
- cnts[3].SetIXs(CSTART_L1+89+GetIndex(),CSTART_L1+ 5);
- cnts[4].SetName("L2before");
- cnts[4].SetIXs(CSTART_L2+25+GetIndex(),CSTART_L2+ 5);
- cnts[5].SetName("L2after");
- cnts[5].SetIXs(CSTART_L2+75+GetIndex(),CSTART_L2+ 5);
+{/* run1:
+ cnts[0].SetName("L0before"); cnts[0].SetIXs(CSTART_L0+15+GetIndex(),CSTART_L0+13);
+ cnts[1].SetName("L0after"); cnts[1].SetIXs(CSTART_L0+99+GetIndex(),CSTART_L1+13);
+ cnts[2].SetName("L1before"); cnts[2].SetIXs(CSTART_L1+39+GetIndex(),CSTART_L1+ 5);
+ cnts[3].SetName("L1after"); cnts[3].SetIXs(CSTART_L1+89+GetIndex(),CSTART_L1+ 5);
+ cnts[4].SetName("L2before"); cnts[4].SetIXs(CSTART_L2+25+GetIndex(),CSTART_L2+ 5);
+ cnts[5].SetName("L2after"); cnts[5].SetIXs(CSTART_L2+75+GetIndex(),CSTART_L2+ 5); */
+ // run2:
+ cnts[0].SetName("L0before"); cnts[0].SetIXs(CSTART_L0+18+GetIndex(),CSTART_L0+15);
+ cnts[1].SetName("L0after"); cnts[1].SetIXs(CSTART_L0+186+GetIndex(),CSTART_L1+15);
+ cnts[2].SetName("L1before"); cnts[2].SetIXs(CSTART_L1+39+GetIndex(),CSTART_L1+ 5);
+ cnts[3].SetName("L1after"); cnts[3].SetIXs(CSTART_L1+139+GetIndex(),CSTART_L1+ 5);
+ cnts[4].SetName("L2before"); cnts[4].SetIXs(CSTART_L2+25+GetIndex(),CSTART_L2+ 5);
+ cnts[5].SetName("L2after"); cnts[5].SetIXs(CSTART_L2+125+GetIndex(),CSTART_L2+ 5);
  if(TriggerClass::GetName().at(2)=='S'){
   cout << "TriggerClasswCount: Factor NOT set to 4 for L0B for class " << GetName() << endl;
   //cout << "TriggerClasswCount: Factor set to 4 for L0B for class " << GetName() << endl;
@@ -453,7 +552,8 @@ Detector* VALIDLTUS::GetDetector(const int DAQdet){
 Detector* VALIDLTUS::GetDetector(const string& name){
  for(int i=0;i<NDET;i++){
   if(dets[i]){
-    if((dets[i]->GetName().find(name) != string::npos))return dets[i]; 
+    //if((dets[i]->GetName().find(name) != string::npos))return dets[i];
+    if(strcasecmp(dets[i]->GetName().c_str(),name.c_str())==0) return dets[i]; 
   }
  }
  cout << "Detector " << name << " not found !!!" << endl;

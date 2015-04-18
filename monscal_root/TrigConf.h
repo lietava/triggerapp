@@ -6,7 +6,8 @@
 #include <vector>
 
 enum {NINP=24};
-enum {NCLASS=50};
+enum {NCLASS=100};
+enum bcmtype {B, A, C, E, S, U};
 using namespace std;
 //#########################################################################
 class InteractionwCount
@@ -27,6 +28,7 @@ class InteractionwCount
 	 string& GetName2(){return fname2;};
 	 void SetName1(string& name){fname1=name;};
 	 void SetName2(string& name){fname2=name;};
+
 };
 //#########################################################################
 class TrigTimeCounters{
@@ -40,19 +42,23 @@ class TrigTimeCounters{
            w32 GetPeriodCounter(){return PeriodCounter;};
            w32 GetSecs(){return TimeSec.GetNow();};
            w32 GetUsecs(){return TimeUsec.GetNow();};
+	   w32 GetActiveTGroup(){return TimeSec.GetActiveTGroup();};
 };
 //#########################################################################
 class TriggerInput{
  private:
-        int fposition;
+        int fposition; // InpN in ctpinputs,cfg
+        int fswitchN;
         int flevel;
 	string fname;
         string fdetname;
  public:
         TriggerInput(string &name,int level,int position,string &detname);
+        TriggerInput(string &name,int level,int position,int iswitch,string &detname);
         string& GetName(){return fname;}; 
         string& GetDetName(){return fdetname;}
         int GetPosition(){return fposition;};
+        int GetSwitchN(){return fswitchN;};
         int GetLevel(){return flevel;} 
         void Print();
 };
@@ -61,6 +67,7 @@ class TriggerInputwCount: public TriggerInput{
         Counter cnt;
  public:
         TriggerInputwCount(string &name,int level,int position,string &detname);
+        TriggerInputwCount(string &name,int level,int position,int iswitch,string &detname);
         void Update(w32* buffer);
         void Display(ofstream* file);
         void Display(char* text);
@@ -92,10 +99,10 @@ class Detector{
 class DetectorwCount : public Detector
 {
  private:
-          Counter l2a,pp;
+          Counter l2s,l2r,pp;
  public:
         DetectorwCount(const Detector &dec);   
-        w64 GetL2aCount(){return l2a.GetCountTot();};
+        w64 GetL2aCount(){return (l2s.GetCountTot()-l2r.GetCountTot());};
         w64 GetPPCount(){return pp.GetCountTot();};
         void Update(w32* buffer);
 };
@@ -118,6 +125,7 @@ class TriggerCluster{
          string& GetName() {return fname;};
          char* GetNamechar() {return fcname;};
          int GetIndex(){return fhwindex;};
+         int GetIndex0(){return (fhwindex-1);};
          int GetNdet(){return ndet;};
          string* GetDetectors(){return fDetectors;};
          void Print();
@@ -139,8 +147,10 @@ class TriggerClusterwCount:public TriggerCluster
         int GetNumofClasses(){return nclass;};
         TriggerClasswCount* GetTriggerClass(int pos){return fTClasses[pos];};
         Counter* GetL0Counter(){return &l0;};
+        w64 GetL2aCount(){return l2.GetCountTot();};
         void Update3(w32* buffer);
         void DisplayCluster(ofstream* file);
+        void DisplayClusterSortBCM(ofstream* file);
         void Print();
 };
 //#########################################################################
@@ -148,11 +158,13 @@ class TriggerClass
 {
  private:
                   string   fname;
+	    	  string   fnamedesc;     // first part of classname corresponding to descriptor
                       w8   fIndex;        // position of class in mask
 //       TriggerDescriptor*  fDescriptor;   // pointer to the descriptor
           TriggerCluster*  fCluster;      // pointer to the cluster
 //  AliTriggerPFProtection* fPFProtection; // pointer to the past-future protection
 //        AliTriggerBCMask* fMask;         // pointer to bunch-crossing mask
+	           bcmtype  BCMtype;
 //                  UInt_t  fPrescaler;    // Downscaling factor
 //                  Bool_t  fAllRare;      // All or Rare trigger
 	           
@@ -162,6 +174,9 @@ class TriggerClass
           w8 GetIndex(){return fIndex;};
           w8 GetIndex0(){return (fIndex-1);};
           string& GetName(){return fname;};
+          string& GetNameDesc() {return fnamedesc;};
+          bcmtype GetBCMtype(){return BCMtype;};
+	  void ParseClassName();
           void Print();
 };
 class TriggerClasswCount:public TriggerClass
@@ -182,7 +197,9 @@ class TriggerClasswCount:public TriggerClass
        void SetGroup(w32 group){fGroup=group;};
        char* GetShortName(){return fnameS;};
        Counter* GetCounters(){return cnts;};
-       w64 GetL2aCount(){return cnts[5].GetCountTot();};
+       w64 GetL2aCountTot(){return cnts[5].GetCountTot();};
+       w64 GetL0bCountTot(){return cnts[0].GetCountTot();};
+       w32 GetL0bCount(){return cnts[0].GetCount();};
        int GetGroup(){return fGroup;};
        int GetTime(){return fTime;};
        bool IsActive(){if(fGroup) return isActive; else return 1;};

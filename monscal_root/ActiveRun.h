@@ -58,7 +58,7 @@ class ActiveRun : public Log
          void PrintClusters();
          void PrintClasses();
          void PrintDetectors();
-         void Print(){PrintInputs();PrintClusters();};
+         void Print(){printf("run: %i\n",fRunNumber);PrintInputs();PrintClusters();};
          //----------DisplayonScreen
          //void CreateDisplaySCAL(){scal = new DisplaySCAL(fRunNumber,fname);};
          void CreateDisplaySCAL(){scal = new DisplaySCAL(*this);};

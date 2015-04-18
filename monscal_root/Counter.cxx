@@ -16,7 +16,7 @@ timebefore(0),timenow(0),
 factor(1),
 timetot(0),counttot(0),
 rate1min(0.),ratetot(0.),
-fGroup(0),fTime(0),
+fGroup(0),fTime(0),fActiveTGroup(0),
 timetotG(0),counttotG(0),ratetotG(0)
 {
  //cout << "Creating counter" << endl;
@@ -55,12 +55,14 @@ void Counter::Update(w32* buffer)
     countnow=buffer[ixcount];
     timebefore=timenow;
     timenow=buffer[ixtime];
-    w32 group = buffer[CSTART_TSGROUP];
+    fActiveTGroup = buffer[CSTART_TSGROUP];
     if(!first){
       cdiff=dodif32(countbefore,countnow)/factor;
       tdiff=dodif32(timebefore,timenow);
       counttot=counttot+cdiff;
-      if( (group==fGroup) || (fGroup==0)){  //group zero is always active
+      bool countGroup = (fActiveTGroup==fGroup) || (fGroup==0);  //group zero is always active
+      countGroup = countGroup && (fActiveTGroup != 255);   // pause
+      if( countGroup ){ 
         counttotG=counttotG+cdiff;
         timetotG=timetotG+tdiff;
         ratetotG=0;

@@ -106,14 +106,17 @@ void DisplaySCAL::CreateInputs()
  for(int i=0;i<ninp;i++){
     int pos=inps[i]->GetPosition()-1;
     CheckIndex(1,pos,NITEMS);
+    TString name(inps[i]->GetCounter()->GetName()); 
+    if(pos<0){
+       cout << "name = " << name << " pos " << pos << " skipped \n";
+       continue;
+    }
     dataInp[pos] = new double[npoints];
     SetItemName((inps[i]->GetCounter()->GetName()).c_str(),pos); 
-    TString name(inps[i]->GetCounter()->GetName()); 
-    //cout << "name = " << name << endl;
+    cout << "name = " << name << " pos " << pos << " created \n";
     //SetItemName(name.Data(),pos); 
     if(name.Contains("0VLN"))ivln=i;
     if(name.Contains("0VHN"))ivhn=i;
-    //cout << "pos " << pos << " created \n";
  }
  cout << "ivln= " << ivln << " ivhn=" << ivhn << endl;
  if(ivln<NITEMS && ivhn<NITEMS){
@@ -325,7 +328,7 @@ void DisplaySCAL::DrawCanvasClasses(int iclu)
   cout << "Canvas class saved" << endl;
   if(machine == '7'){
     stringstream ss ;
-    ss << "scp "<<ClustNames[iclu]<<" trigger@alidcscom188:v/vme/WORK/MONSCAL/."; 
+    ss << "scp "<<ClustNames[iclu]<<" trigger@alidcscom835:v/vme/WORK/MONSCAL/."; 
     int rc=system((ss.str()).c_str());
     cout  << ss.str() << " rc= " << rc << endl;
   }else{
@@ -391,7 +394,8 @@ void DisplaySCAL::DrawCanvasInps()
   cout << "Canvas saved" << endl;
   if(machine == '7'){
     stringstream ss ;
-    ss << "scp inputs.png trigger@alidcscom188:v/vme/WORK/MONSCAL/."; 
+    ss << "scp inputs.png trigger@alidcscom835:v/vme/WORK/MONSCAL/."; 
+    //ss << "scp inputs.png trigger@alidcscom835:/local/trigger/v/vme/CNTRRD/htmls/pngs/."; 
     int rc=system((ss.str()).c_str());
     cout  << ss.str() << " rc= " << rc << endl;
   }else
@@ -508,7 +512,7 @@ void DisplaySCAL::DisplayRun()
 }
 void DisplaySCAL::ClearData()
 {
- cout << "deleting inputs" << endl;
+ cout << "deleting inputs " << NITEMS << endl;
  for(int i=0;i<NITEMS;i++){
   if(dataInp[i] && runnum){
     cout << "Error: dataInp nonzero, not deleting" << endl;

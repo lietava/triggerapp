@@ -41,7 +41,7 @@ fINT(0)
  for(int i=0;i<NCLASS;i++)fClasses[i]=0;
  for(int i=0;i<NDET;i++)fDetectors[i]=0;
  if(runnum){
-   ParseConfigFile(runnum);
+   if(ParseConfigFile(runnum)) exit(1);
  }
  else{
      // inputs, parse valid.ctpinputs and special input config
@@ -137,7 +137,8 @@ int ActiveRun::ParseValidCTPInputs()
 {
   stringstream ss;
  ifstream file;
- ss << "/CFG/ctp/DB/VALID.CTPINPUTS";
+ //ss << "/CFG/ctp/DB/VALID.CTPINPUTS";
+ ss << "/CFG/ctp/DB/ctpinputs.cfg";
  string filename = getenv("VMECFDIR")+ss.str();
  file.open(filename.c_str());
  if(!file){
@@ -163,15 +164,17 @@ int ActiveRun::ProcessInputLine(const string &line)
  vector<string> items;
  splitstring(line,items," ");
  int nitems = items.size();
- if(nitems!=12){
-   cout << "unexpected number of items in VALID.CTPINPURS: line:" << endl;
+ if(nitems < 17){
+   //cout << "unexpected number of items in VALID.CTPINPURS: line:" << endl;
+   cout << "unexpected number of items in ctpinputs,cfg: line:" << endl;
    cout << line << endl;
    return 1;
  }
  // loop input list and add to configuration only if in the list
  for(unsigned int i=0;i<inputlist.size();i++){
   if(items[0].find(inputlist[i]) != string::npos){  
-    TriggerInputwCount* inp = new TriggerInputwCount(items[0],atoi(items[3].c_str()),atoi(items[5].c_str()),items[2]); 
+    //TriggerInputwCount* inp = new TriggerInputwCount(items[0],atoi(items[3].c_str()),atoi(items[5].c_str()),items[2]); 
+    TriggerInputwCount* inp = new TriggerInputwCount(items[0],atoi(items[3].c_str()),atoi(items[5].c_str()),atoi(items[7].c_str()),items[2]); 
     inp->Print();
     AddInput(inp);
   } 
@@ -249,8 +252,8 @@ int ActiveRun::ProcessCfgLine(const string &line,int& level)
  //cout << "# of items: " << nitems <<  " level= " << level << endl;
  switch (level){
    case 1:  // inputs
-	{
-          if(nitems != 5){
+          {
+          if((nitems != 6) && (nitems !=5)){
             PrintLog(("Invalid input syntax: "+line).c_str());
             return 1;
           }
@@ -258,31 +261,19 @@ int ActiveRun::ProcessCfgLine(const string &line,int& level)
              cout << "ActiveRun::ProcessCfgLine: input "  << items[0] << " skipped." << endl;
              return 0;
           }
-          TriggerInputwCount* inp = new TriggerInputwCount(items[0],atoi(items[2].c_str()),atoi(items[4].c_str()),items[1]); 
+          //TriggerInputwCount* inp = new TriggerInputwCount(items[0],atoi(items[2].c_str()),atoi(items[4].c_str()),items[1]); 
+            TriggerInputwCount* inp = new TriggerInputwCount(items[0],atoi(items[2].c_str()),atoi(items[4].c_str()),atoi(items[5].c_str()),items[1]); 
           AddInput(inp);
           return 0;
-	}
+          }
    case 2:  //interactions
           //cout << "INTERACTION found." << endl;
-          /*
-          if(items[0].find("INT1") != string::npos){
-            string name;
-            name="IR1:"+items[1];
-            fINT->SetName1(name);
-          }else if(items[0].find("INT2") != string::npos){
-            string name;
-            name="IR2:"+items[1];
-            fINT->SetName2(name);
-          }else{
-            cout << "Error: Processcfgline: wrong int:" << endl;
-            cout << line << endl;
-          }
-          */
+          //fINT = new InteractionwCount; 
           return 0;
    case 3:   // descriptors
           return 0;
    case 4: //clusters
-	{
+          {
           if(nitems<3){
             PrintLog(("Invalid cluster syntax: "+line).c_str());
             return 1;
@@ -293,18 +284,22 @@ int ActiveRun::ProcessCfgLine(const string &line,int& level)
             string a("DAQ");
             cls->AddDetector(a);
             cout << "Changing DAQ_TEST to DAQ." << endl;
+           }else if(items[i].find("EMCal") != string::npos){
+            string a("EMCAL");
+            cls->AddDetector(a);
+            cout << "Changing EMCal to EMCAL." << endl;
            }else cls->AddDetector(items[i]);
          }
          AddCluster(cls); 
          return 0;
-	}
+         }
    case 5:  // pfs
           return 0;
    case 6:   //bcmasks
           return 0;
    case 7:  // classes
          {
-	 if((nitems != 8) && (nitems != 10) && (nitems != 11)){
+         if((nitems != 8) && (nitems != 10) && (nitems != 11)){
            PrintLog(("Invalid class syntax: "+line).c_str());
           return 1;
          }
@@ -323,6 +318,7 @@ int ActiveRun::ProcessCfgLine(const string &line,int& level)
               clss = new TriggerClasswCount(items[0],atoi(items[1].c_str()),fClusters[i]);
             else
               clss = new TriggerClasswCount(items[0],atoi(items[1].c_str()),fClusters[i],atoi(items[8].c_str()),atoi(items[9].c_str()));
+            clss->ParseClassName();
             AddClass(clss);
             //cout << "ActiveRun: ";
             //clss->Print();
@@ -418,7 +414,8 @@ int ActiveRun::ParseConfigFile(int runnumber){
  stringstream ss;
  if(runnumber){  
     if(machine == '7'){ // RCFG is not visible from 027=>copy
-      ss << "scp -p trigger@alidcscom188:v/vme/WORK/RCFG/r" <<runnumber << ".rcfg RCFG/.";
+      //ss << "scp -p trigger@alidcscom188:v/vme/WORK/RCFG/r" <<runnumber << ".rcfg RCFG/.";
+      ss << "scp -p trigger@alidcscom835:v/vme/WORK/RCFG/r" <<runnumber << ".rcfg RCFG/.";
       int rc=system((ss.str()).c_str());
       if(rc){
        cout << "ActiveRun::ParseConfigFile : cannot copy " << ss.str() << endl;

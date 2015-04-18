@@ -27,9 +27,10 @@ void Log::getdatetime(char* dmyhms) {
 time_t T;
 struct tm *LT;  /*LocalTime */
 T=time(&T); LT = localtime(&T);
-sprintf(dmyhms,"%2.2d.%2.2d.%4.0d_%2.2d:%2.2d:%2.2d",
+sprintf(dmyhms,"%2.2d.%2.2d.%4.0d %2.2d:%2.2d:%2.2d",
   LT->tm_mday,LT->tm_mon+1,LT->tm_year+1900,
   LT->tm_hour,LT->tm_min,LT->tm_sec);
+  for(int i=0; i<28; i++) { if(dmyhms[i] == ' ') dmyhms[i] = '_'; }; 
 }
 void Log::gettime(char *hhmm)
 {
@@ -61,6 +62,13 @@ void Log::PrintLog(char* text)
 {
  //*log << *this << " " << text << endl;
  cout << *this << " " << text << endl;
+}
+void Log::PrintLog(char* text,int i)
+{
+ // c like formatting expected
+ stringstream ss;
+ ss << *this << " " << text << "\n";
+ printf(ss.str().c_str(),i);
 }
 ostream &operator<<(ostream &stream ,Log  &log)
 {

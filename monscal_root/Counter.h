@@ -18,7 +18,7 @@ class Counter : public Log
         w32 factor;  // correction for SPD 4 BC
         w64 timetot,counttot;
         double rate1min,ratetot;
-        w32 fGroup,fTime;
+        w32 fGroup,fTime,fActiveTGroup;
         w64 timetotG,counttotG;
         double ratetotG; 
         w32 dodif32(w32 before, w32 now);
@@ -42,10 +42,12 @@ class Counter : public Log
         w32 GetCount(){return cdiff;}
         w32 GetTime(){return tdiff;}
         float GetTimeSec(){return timetot*0.4/1.e6;};
+        float GetTimeSecG(){return timetotG*0.4/1.e6;};
         double GetRate(){return rate1min;}
         double GetRateA(){return ratetot;}
         w32 GetBefore(){return countbefore;}
         w32 GetNow(){return countnow;}
+	w32 GetActiveTGroup(){return fActiveTGroup;};
         void PrintName();
         void Print();
 };
