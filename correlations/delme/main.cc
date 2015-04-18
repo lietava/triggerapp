@@ -6,7 +6,6 @@ int main(int argc, char **argv) {
   cout << "One argument expected." << endl;
   return 1;
  }
- printf("Correlations: \n");
  int ret;
  TStopwatch time,timetot;
  cout << argv[1] << endl;
@@ -43,6 +42,7 @@ int main(int argc, char **argv) {
   a.correlateAllSSM(0,0);  // 0,0=use config values
   a.printCorrelations();
   a.printCorrelationOrbit();
+ return 0;
 //-----------------------------------Corr 2 One with cor coef
  //cout << "Correlations2One======================================================================="<<endl;
  ///a.correlate2OneAll(0,8);

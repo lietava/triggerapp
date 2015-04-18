@@ -1,4 +1,4 @@
-OPT2 = -O2
+OPT2 =
 ROOTCONFIG   := root-config
 
 ROOTCFLAGS   := $(shell $(ROOTCONFIG) --cflags)

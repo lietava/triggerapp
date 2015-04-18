@@ -150,7 +150,15 @@ cordist_d(0),delta_d(0),nfiles(0),nssms(0),Nchans(60)
 }
 extractData::~extractData()
 {
- repFile.close();
+ //correlations = new int*[ncorrelations];
+ //cororbit     = new int*[ncorrelations];
+ for (int i=0;i<ncorrelations;i++){
+   //correlations[i]=new int[2*delta+1];
+   delete [] correlations[i];
+   //cororbit[i] = new int[ORBIT];
+ }
+ delete [] correlations; 
+// repFile.close();
 }
 //-----------------------------------------------------------
 void extractData::openRepFile()
@@ -239,7 +247,7 @@ int extractData::ReadConfig(char* config)
          }
          ccordist_d=atoi(items[0].c_str());
          cdelta_d=atoi(items[1].c_str());
-         cout << "config.txt: FROM SIZE " << ccordist_d << " " << cdelta_d << endl;
+         cout << "config.txt: FROM SIZE dist delta" << ccordist_d << " " << cdelta_d << endl;
          nlines++;
       }else if(nlines==7){
          // chose input to correlate to
@@ -278,10 +286,9 @@ int extractData::ParseVALIDCTPINPUTS()
       splitstring(line,items," =");
       //cout << items[0] << " " << items[4] << " " << items[8] << endl;
       //cout << items.size() << endl;
-      if(items.size()==0) continue;
       if(items.size() < 11){
-       cout << "Wrong syntax in " << VALIDCTPINPUTS_d << " itemsize= "<< items.size() << endl;
-       cout << "line:" << line << endl;
+       cout << "Wrong syntax in " << VALIDCTPINPUTS_d << endl;
+       cout << line << endl;
        return 1;
       }
       int index=atoi(items[4].c_str());
@@ -338,7 +345,7 @@ int extractData::extractBPX(int issm){
     cout << "extract1SSMfilt1: File not found: "<<  file  << endl;
     return 1;
  }
- cout << "extract1SSMfilt1: " << file << " OK" << endl;
+ cout << file << " OK" << endl;
  w32 ssm[Mega];
  in.read((char*)ssm,sizeof(ssm));
  in.close();
@@ -358,26 +365,22 @@ int extractData::extract1SSMfilt1(int issm){
 // del : correlation only to the edge del[i]>0
 //       del[i]=0 no limit
  ifstream in;
- string file(DataDir_d+"/"+ssmdumps[issm]);
+ string file(DataDir_d+ssmdumps[issm]);
  in.open(file.c_str(),ios::in | ios::binary);
  if(!in.is_open()){
     cout << "extract1SSMfilt1: File not found: "<<  file  << endl;
-    exit(1);
-    //return 1;
+    return 1;
  }
- cout << "extract1SSMfilt1: " << file << " OK" << endl;
+ cout << file << " OK" << endl;
  int del[Nchans];
  for(int i=0;i<Nchans;i++)del[i]=0;
- //int delorbit=0;
- int orbitact=0;
- int orbitlength=0;
+ int delorbit=0;
  w32 ssm[Mega];
  in.read((char*)ssm,sizeof(ssm));
  in.close();
  for (int i=0;i<Mega;i++){
   if(!ssm[i]) continue;
   for(int j=0;j<Nchans;j++){
-   /*
    if(j==0){
     if((delorbit--)<=0 && (ssm[i] & 1)){
       ssmpoint o(issm,j,0,i);
@@ -385,26 +388,6 @@ int extractData::extract1SSMfilt1(int issm){
       orbits.push_back(o);
       delorbit=41;
     }
-   }
-   */
-   if(j==0){
-     w32 stat = (ssm[i]&1) + (orbitact<<1);
-     //printf("%i \n",stat);
-     if(stat==3){ // inside orbit
-       orbitlength++;
-     }else if(stat==1){ // start
-       orbitact=1;
-     }else if(stat==2){ //end
-      ssmpoint o(issm,j,0,i-1);
-      //p.Print();
-      orbits.push_back(o);
-      //printf("orbitlength= %i \n",orbitlength); 
-      if(orbitlength != 37){
-       printf("Warning: issm=%i orbitlength= %i \n",i,orbitlength);
-      }
-      orbitact=0;
-      orbitlength=0;
-     }
    }
    if(chan2inp[j] != -1){
     if((del[j]--)<=0 && (ssm[i] & (1<<j))){
@@ -423,12 +406,11 @@ int extractData::extract1SSMfilt1(int issm){
 //------------------------------------------------------------
 int extractData::extract1SSM(int issm){
  ifstream in;
- string file(DataDir_d+"/"+ssmdumps[issm]);
+ string file(DataDir_d+ssmdumps[issm]);
  in.open(file.c_str(),ios::in | ios::binary);
  if(!in.is_open()){
     cout << "extract1SSM: File not found: "<<  ssmdumps[issm]  << endl;
-    //return 1;
-    exit(1);
+    return 1;
  }
  cout << file << " OK" << endl;
  w32 ssm[Mega];
@@ -553,12 +535,11 @@ int extractData::removeEmptySSMs(bool remove){
 //-------------------------------------------------------------------
 int extractData::checkSSMforData(int issm){
  ifstream in;
- string file(DataDir_d+"/"+filelist[issm]);
+ string file(DataDir_d+filelist[issm]);
  in.open(file.c_str(),ios::in | ios::binary);
  if(!in.is_open()){
     cout << "checkSSMforData: File not found: "<<  file.c_str()  << endl;
-    //return 2;
-    exit(1);
+    return 2;
  }
  cout << file << " OK" << endl;
  w32 ssm[Mega];
@@ -585,12 +566,11 @@ int extractData::checkSSMforData(int issm){
 // Checking input by opening file
 int extractData::checkInputs(int issm){
  ifstream in;
- string file(DataDir_d+"/"+filelist[issm]);
+ string file(DataDir_d+filelist[issm]);
  in.open(file.c_str(),ios::in | ios::binary);
  if(!in.is_open()){
     cout << "checkInputs: File not found: "<<  ssmdumps[issm]  << endl;
-    //return 1;
-    exit(1);
+    return 1;
  }
  int last[Nchans];
  for(int i=0;i<Nchans;i++){last[i]=0;chansd[i]=0;} // set variable later
@@ -632,7 +612,7 @@ int extractData::fill(int chan1,int chan2,int dist,int iorbit){
   int ch=chan1; chan1=chan2;chan2=ch;
  } else dist=delta_d+dist;
  int i=(2*ninputs-chan1-1)*chan1/2+chan2;
- correlations[i][dist]++;
+ correlations[i][dist]=correlations[i][dist]+1;
  cororbit[i][iorbit]++; 
  return 0;
 }
@@ -753,6 +733,7 @@ int extractData::correlateAllSSM(int cordist,int delta){
   delta_d=delta;
   cordist_d=cordist;
  }
+ printf("ncorrelations=%i 2*delta+1=%i \n",ncorrelations,2*delta+1);
  for (int i=0;i<ncorrelations;i++){
    correlations[i]=new int[2*delta+1];
    for(int j=0;j<2*delta+1;j++)correlations[i][j]=0;
@@ -1126,21 +1107,15 @@ void extractData::printDistance()
  int delta=ORBIT;
  for(int i=0;i<ninputs;i++){
   string name(inputNames[i]);
-  //cout << name << endl;
+  cout << name << endl;
   addHist2(name,delta,cordist,cordist+delta);
   int sum=0;
-  int max=0;int imax=0;
   for(int j=0;j<delta;j++){
      fillHist2(i,j,orbit[i][j]);
      sum += orbit[i][j];
-     if(max<orbit[i][j]){
-       max=orbit[i][j];
-       imax=j;
-     }
      //cout << " " << orbit[i][j];
   }
   entriesHist2(i,sum);
-  printf("%s: max: %i %i \n",name.c_str(),imax,max);
   //cout << endl;
  }
 }
@@ -1171,7 +1146,6 @@ void extractData::printCorrelations(){
  }
 }
 void extractData::printCorrelationOrbit()
-// Distribution of first input in orbit for a correlation
 {
  for(int i=0;i<ninputs;i++){
   for(int j=i;j<ninputs;j++){
