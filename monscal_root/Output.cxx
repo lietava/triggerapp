@@ -124,6 +124,7 @@ void DisplaySCAL::CreateInputs()
     SetItemName("VLN/VHN",NLHRAT);
  }
  if(inter){
+   printf("Interaction names: %s %s \n",inter->GetName1().c_str(),inter->GetName2().c_str());
    dataInp[NINT1] = new double[npoints];
    dataInp[NINT2] = new double[npoints];
    SetItemName(inter->GetName1().c_str(),NINT1); 

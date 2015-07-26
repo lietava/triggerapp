@@ -47,6 +47,7 @@ fINT(0)
      // inputs, parse valid.ctpinputs and special input config
    ParseInputsList();
    ParseValidCTPInputs();
+   Parsecfg();
  }
  //ParsePartitionFile(runnum); // this is not necessary now, all info is in rcfg
  FindDetectors();
@@ -66,6 +67,42 @@ ActiveRun::~ActiveRun()
  for(int i=0;i<ndet;i++) if(fDetectors[i])delete fDetectors[i];
  if(scal) delete scal;
  cout << "Stopping run " << fRunNumber << endl;
+}
+//-----------------------------------------------------------
+int ActiveRun::Parsecfg()
+{
+ stringstream ss;
+ ifstream file;
+ ss << "/CFG/ctp/DB/ctp.cfg";
+ frcfgfile = getenv("VMECFDIR")+ss.str();
+ file.open(frcfgfile.c_str());
+ if(!file){
+  PrintLog(("ActiveRun: cannot open file: "+frcfgfile).c_str());
+  return 1;
+ }else{
+  PrintLog(("ActiveRun: File: "+frcfgfile+" opened.").c_str());
+ }
+ string line;
+ while(getline(file,line)){
+   vector<string> items;
+   splitstring(line,items," ");
+   int nitems = items.size();
+   if(nitems==0)continue;
+   if(items[0][0]=='#') continue;
+   if(items[0].find("L0_INTERACT1") != string::npos){
+    if(fINT){
+     string name1(items[1].c_str());
+     fINT->SetName1(name1);
+    }       
+  }  
+  if(items[0].find("L0_INTERACT2") != string::npos){
+    if(fINT){
+      string name2(items[1].c_str());
+      fINT->SetName2(name2);
+    }        
+  }
+ }
+ return 0;
 }
 //-----------------------------------------------------------
 int ActiveRun::ParseInputsList()
@@ -100,9 +137,9 @@ int ActiveRun::ParseInputsList()
     // create int
     cout << "INT in the list of inputs." << endl;
     fINT = new InteractionwCount;
-    string name1("IR1:\r\n VBA&VBC");
+    string name1("INT1");
     fINT->SetName1(name1);      
-    string name2("IR2:TVX");
+    string name2("INT2");
     fINT->SetName2(name2);      
    }
    else 
@@ -164,9 +201,14 @@ int ActiveRun::ProcessInputLine(const string &line)
  vector<string> items;
  splitstring(line,items," ");
  int nitems = items.size();
+ // lm input
+ if((nitems==10)&& (items[3]=='M')){
+   cout << "skipping input: " << line << endl;
+   return 0;
+ }
  if(nitems < 17){
    //cout << "unexpected number of items in VALID.CTPINPURS: line:" << endl;
-   cout << "unexpected number of items in ctpinputs,cfg: line:" << endl;
+   cout << "unexpected number of items in ctpinputs,cfg: line: " << nitems << endl;
    cout << line << endl;
    return 1;
  }
@@ -204,6 +246,7 @@ int ActiveRun::ProcessCfgLine(const string &line,int& level)
  //cout << line << endl;
  if(line.size()==0) return 0;
  size_t ix=0;
+ int intercount=0;
  while(ix<line.size() && line.at(ix)==' ')ix++;
  if(line.at(ix)=='#') return 0;
  if((ix=line.find("PARTITION:")) != string::npos){
@@ -269,6 +312,17 @@ int ActiveRun::ProcessCfgLine(const string &line,int& level)
    case 2:  //interactions
           //cout << "INTERACTION found." << endl;
           //fINT = new InteractionwCount; 
+          if(nitems != 2){
+            PrintLog(("Invalid interaction syntax: "+line).c_str());
+            return 1;
+          }
+          intercount++;
+          if(intercount==1)fINT->SetName1(items[1]); 
+          else if(intercount==2)fINT->SetName2(items[1]);
+          else{
+            PrintLog(("Too many interactions: "+line).c_str());
+            return 1;
+          }  
           return 0;
    case 3:   // descriptors
           return 0;
@@ -327,7 +381,7 @@ int ActiveRun::ProcessCfgLine(const string &line,int& level)
           }
          }
          stringstream ss; 
-         ss << "Class " << line << " cluster " << items[3] << " not found !" << endl;
+         ss << "Error Class " << line << " cluster " << items[3] << " not found ! " << endl;
          PrintLog(ss.str().c_str());
          return 1;
           }

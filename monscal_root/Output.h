@@ -11,7 +11,8 @@ class ActiveRun;
 class DisplaySCAL : public Log
 {
  private:
-         enum {NITEMS=54,NLHRAT=53,NTIME=52,NINT2=51,NINT1=50,NCLUST=6,NINP=60,NCLASS=50};
+         //enum {NITEMS=54,NLHRAT=53,NTIME=52,NINT2=51,NINT1=50,NCLUST=6,NINP=60,NCLASS=100};
+         enum {NITEMS=104,NLHRAT=103,NTIME=102,NINT2=101,NINT1=100,NCLUST=6,NINP=60,NCLASS=100};
          int runnum;
          int ninp;
          int nclust;

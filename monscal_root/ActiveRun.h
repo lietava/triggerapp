@@ -12,7 +12,7 @@ using namespace std;
 class ActiveRun : public Log
 {
  private:
-         enum {NCLASS=50, NCLUST=6,NINP=60, NDET=24};
+         enum {NCLASS=100, NCLUST=6,NINP=60, NDET=24};
          const int fRunNumber;
          string fname;
          string frcfgfile;
@@ -39,6 +39,7 @@ class ActiveRun : public Log
          int ParseInputsList();
          int OpenVALIDCTPINPUTS();
          int ParseValidCTPInputs();
+         int Parsecfg();
  public:
          ActiveRun();
          ActiveRun(const int runnum);
