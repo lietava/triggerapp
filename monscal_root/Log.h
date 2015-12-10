@@ -15,6 +15,7 @@ class Log{
           void getdatetime(char *time);
           void gettime(char *time);
           void gettimeI(int *time);
+          void gettimeIsec(int *time);
           void PrintLog(string& text);
           void PrintLog(const char* text);
           void PrintLog(char* text);

@@ -34,6 +34,8 @@ class DisplaySCAL : public Log
          int npoints;
          int cpoints;   // pointer to one of npoints
          int nnpoints;  // <=npoints
+         int count;
+         float timelast;
          int activeclust;
          void DisplayInputs(const int ninp, TriggerInputwCount* inps[]);
          void DisplayInputs();

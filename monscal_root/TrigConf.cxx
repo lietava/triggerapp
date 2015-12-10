@@ -31,8 +31,10 @@ InteractionwCount::InteractionwCount()
  Int1.SetName("INT1"); Int1.SetIXs(CSTART_L0+92,CSTART_L0+13);
  Int2.SetName("INT2"); Int2.SetIXs(CSTART_L0+93,CSTART_L0+13); */
  // run2:
- Int1.SetName("INT1"); Int1.SetIXs(CSTART_L0+173,CSTART_L0+15);
- Int2.SetName("INT2"); Int2.SetIXs(CSTART_L0+174,CSTART_L0+15);
+ //Int1.SetName("INT1"); Int1.SetIXs(CSTART_L0+173,CSTART_L0+15);
+ //Int2.SetName("INT2"); Int2.SetIXs(CSTART_L0+174,CSTART_L0+15);
+ Int1.SetName("INT1"); Int1.SetIXs(CSTART_L0+175,CSTART_L0+15);
+ Int2.SetName("INT2"); Int2.SetIXs(CSTART_L0+176,CSTART_L0+15);
 }
 void InteractionwCount::Update(w32* buffer)
 {

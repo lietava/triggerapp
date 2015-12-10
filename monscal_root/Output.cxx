@@ -22,7 +22,9 @@ ivln(NITEMS),ivhn(NITEMS),
 show(0),
 npoints(20),
 cpoints(0),
-nnpoints(1)
+nnpoints(1),
+count(0),
+timelast(0)
 {
  for(int i=0;i<NITEMS;i++){
    dataInp[i] = 0;
@@ -135,11 +137,16 @@ void DisplaySCAL::CreateInputs()
 }
 void DisplaySCAL::DisplayInputs()
 {
+ count++;
+ //if((count%20) != 0) return;
+ if((inps[0]->GetCounter()->GetTimeSec() - timelast) < 30) return;
+ timelast=inps[0]->GetCounter()->GetTimeSec();
  // Dealing with time
- if(inps[0]->GetCounter()->GetTimeSec() < 3.) return;  // skip 61 sec window, later with dim
+ // if(inps[0]->GetCounter()->GetTimeSec() < 3.) return;  // skip 61 sec window, later with dim
  //dataInp[NITEMS][cpoints]=inps[0]->GetCounter()->GetTimeTotSec(); time from counters
  int tt;
- gettimeI(&tt);
+ //gettimeI(&tt);
+ gettimeIsec(&tt);
  CheckIndex(2,cpoints,npoints);
  //cout << "tt= " << tt << endl;
  dataInp[NTIME][cpoints]=tt;
@@ -376,6 +383,7 @@ void DisplaySCAL::DrawCanvasInps()
   ncd=0;
   char tt[64];
   gettime(tt);
+  printf("time= %s \n",tt);
   TText* timelabel = new TText(.5,0.5,tt);
   timelabel->SetNDC();
   //timelabel->SetTextAngle(90);
@@ -388,11 +396,24 @@ void DisplaySCAL::DrawCanvasInps()
       //timelabel->Draw();
     }
   }
+  char time[30];
+  getdatetime(time);
+  cout <<"datetime " <<  time << endl;
+  fCanvas->cd(0);
+  TText* timedatelabel = new TText(0.5,0.0,time);
+  timedatelabel->Draw();
   cout << "Canvas drawn " <<  endl;
   fCanvas->Update();
-  // Copy to MONSCAL for html display
+  // save old png for debuging
+  {
+   stringstream ss ;
+   ss << "cp inputs.png MONSCAL/inputs"<<time<<".log"; 
+   int rc=system((ss.str()).c_str());
+   cout  << ss.str() << " rc= " << rc << endl;
+  }
   fCanvas->SaveAs("inputs.png");
   cout << "Canvas saved" << endl;
+  // Copy to MONSCAL for html display
   if(machine == '7'){
     stringstream ss ;
     ss << "scp inputs.png trigger@alidcscom835:v/vme/WORK/MONSCAL/."; 

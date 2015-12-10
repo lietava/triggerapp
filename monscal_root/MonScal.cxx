@@ -110,6 +110,7 @@ int MonScal::StopActiveRun(int index)
 }
 int MonScal::UpdateActiveRun(int index,int runnum)
 {
+ count++; 
  if(runnum==0){
     if(SCAL()){
       inputs->UpdateRunCounters(buffer);

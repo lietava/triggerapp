@@ -92,12 +92,14 @@ int ActiveRun::Parsecfg()
    if(items[0].find("L0_INTERACT1") != string::npos){
     if(fINT){
      string name1(items[1].c_str());
+     name1="INT1: "+name1;
      fINT->SetName1(name1);
     }       
   }  
   if(items[0].find("L0_INTERACT2") != string::npos){
     if(fINT){
       string name2(items[1].c_str());
+      name2="INT2: "+name2;
       fINT->SetName2(name2);
     }        
   }

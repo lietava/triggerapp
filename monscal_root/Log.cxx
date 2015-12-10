@@ -49,6 +49,15 @@ void Log::gettimeI(int *t)
  *t=  (((LT->tm_hour+23) % 24)*60*60+LT->tm_min*60); // -1 seems to be some summer time problem in root
  //*t=  ((LT->tm_hour)*60*60+LT->tm_min*60); // -1 seems to be some summer time problem in root
 }
+void Log::gettimeIsec(int *t)
+{
+ time_t T;
+ struct tm *LT;  /*LocalTime */
+ T=time(&T); LT = localtime(&T);
+ //cout << (LT->tm_hour+23) % 24 << " " << LT->tm_min << endl;
+ //*t=  (((LT->tm_hour+23) % 24)*60*60+LT->tm_min*60); // -1 seems to be some summer time problem in root
+ *t=  (((LT->tm_hour+23) % 24)*60*60+LT->tm_min*60+LT->tm_sec); // -1 seems to be some summer time problem in root
+}
 void Log::PrintLog(string& text)
 {
  //*log << *this << " " << text << endl;
