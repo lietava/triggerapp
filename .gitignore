@@ -1,0 +1,10 @@
+#
+*.o
+*.log
+monscal_root/RCFG/*
+monscal_root/WORK/*
+monscal_root/delme/*
+monscal_root/linux
+monscal_root/inputs.png
+*.swp
+
